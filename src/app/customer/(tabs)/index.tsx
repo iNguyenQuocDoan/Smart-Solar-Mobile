@@ -1,1 +1,1 @@
-export { CustomerHomeScreen as default } from '@/screens/CustomerHomeScreen'
+export { MonitoringOverviewScreen as default } from '@/screens/MonitoringOverviewScreen'

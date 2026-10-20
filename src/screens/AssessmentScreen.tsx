@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Button, Field, PageHeader, Panel, QueryState, Screen, SectionTitle, StateView } from '@/components/ui'
+import { Button, Field, IconButton, PageHeader, Panel, QueryState, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
 import { keys } from '@/hooks/queries'
 import { ApiError } from '@/lib/api/client'
@@ -461,6 +461,7 @@ export function AssessmentScreen() {
 
   return (
     <Screen key={`assessment-step-${step}`}>
+      <View style={styles.back}><IconButton label="Về danh sách yêu cầu" icon="arrow-back" onPress={() => router.navigate('/customer/requests')} /></View>
       <PageHeader eyebrow="Khách hàng" title="Đánh giá sơ bộ" description="Khai số liệu công trình để gửi yêu cầu khảo sát." />
       <StepBar current={step} firstStep={firstStep} />
       {content}
@@ -482,6 +483,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  back: { marginLeft: -8, marginBottom: -12 },
   stepRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 },
   stepItem: { flex: 1, alignItems: 'center' },
   stepLine: { position: 'absolute', height: 2, left: '-50%', right: '50%', top: 14 },

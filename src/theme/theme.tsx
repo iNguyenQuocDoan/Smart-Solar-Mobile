@@ -30,6 +30,8 @@ export const lightTheme = {
   warningSoft: '#FFF3D4',
   successSoft: '#E5F4EA',
   infoSoft: '#E9F1FF',
+  // Chart marks: validated for lightness, chroma and 3:1 contrast against `surface`.
+  chart: '#1F7A4D',
 } as const
 
 export const darkTheme = {
@@ -53,6 +55,7 @@ export const darkTheme = {
   warningSoft: '#3A2E14',
   successSoft: '#173528',
   infoSoft: '#192D4A',
+  chart: '#3FA672',
 } as const
 
 export type AppTheme = typeof lightTheme | typeof darkTheme

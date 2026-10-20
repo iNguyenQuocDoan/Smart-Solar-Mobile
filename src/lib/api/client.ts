@@ -4,6 +4,18 @@ import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from '@/lib/
 
 const fallbackUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8080/api' : 'http://localhost:8080/api'
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? fallbackUrl
+const REQUEST_TIMEOUT_MS = 15_000
+
+// React Native's fetch has no default timeout, so an unreachable host would leave the UI spinning forever.
+async function fetchWithTimeout(url: string, init: RequestInit) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  try {
+    return await fetch(url, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
 
 const messages: Record<string, string> = {
   AUTH_INVALID_CREDENTIALS: 'Email hoặc mật khẩu không chính xác, hoặc tài khoản chưa thể đăng nhập.',
@@ -41,6 +53,10 @@ export class ApiError extends Error {
     super(message)
     this.name = 'ApiError'
   }
+}
+
+export function isNetworkError(error: unknown) {
+  return error instanceof ApiError && error.status === 0
 }
 
 type SessionExpiredHandler = () => void
@@ -81,7 +97,7 @@ async function refreshAccessToken(): Promise<string> {
   refreshInFlight ??= (async () => {
     const refreshToken = await getRefreshToken()
     if (!refreshToken) throw new ApiError(statusMessages[401]!, 401)
-    const response = await fetch(`${API_URL}/auth/refresh`, {
+    const response = await fetchWithTimeout(`${API_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -116,7 +132,7 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
 
   let response: Response
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetchWithTimeout(`${API_URL}${path}`, {
       ...init,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),

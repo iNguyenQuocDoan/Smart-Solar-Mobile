@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAppTheme, type AppTheme } from '@/theme/theme'
 import type { Tone } from '@/lib/status'
 
-type IconName = ComponentProps<typeof Ionicons>['name']
+export type IconName = ComponentProps<typeof Ionicons>['name']
 
 export function Screen({ children, refreshing, onRefresh, contentStyle, ...props }: PropsWithChildren<ScrollViewProps> & {
   refreshing?: boolean
@@ -134,7 +134,7 @@ export function Badge({ children, tone = 'neutral' }: PropsWithChildren<{ tone?:
   )
 }
 
-function tonePalette(theme: AppTheme, tone: Tone) {
+export function tonePalette(theme: AppTheme, tone: Tone) {
   if (tone === 'danger') return { background: theme.dangerSoft, text: theme.danger }
   if (tone === 'warning') return { background: theme.warningSoft, text: theme.warning }
   if (tone === 'success') return { background: theme.successSoft, text: theme.success }
