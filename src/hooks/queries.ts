@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { customerService, productService, technicianService } from '@/lib/api/services'
+import { assessmentService, customerService, productService, technicianService } from '@/lib/api/services'
 
 export const keys = {
   customerRequests: ['customer-requests'] as const,
@@ -10,6 +10,12 @@ export const keys = {
   schedule: (date: string) => ['technician-schedule', date] as const,
   products: (search: string) => ['products', search] as const,
   product: (id: string) => ['products', 'detail', id] as const,
+  communes: ['communes', '79'] as const,
+}
+
+/** Danh mục phường, xã ít đổi nên tải một lần mỗi lần mở app */
+export function useHcmCommunes() {
+  return useQuery({ queryKey: keys.communes, queryFn: assessmentService.listCommunes, staleTime: Infinity, gcTime: Infinity })
 }
 
 export function useCustomerRequests() {

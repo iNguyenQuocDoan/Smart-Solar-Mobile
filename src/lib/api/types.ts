@@ -213,6 +213,15 @@ export type AssessmentSurface = {
   selectedSimulationId: string | null
 }
 
+/** Một phường, xã hoặc đặc khu đang hiệu lực (GET /api/administrative-units/communes) */
+export type Commune = {
+  /** 5 chữ số, giữ số 0 ở đầu */
+  code: string
+  name: string
+  unitType: string
+  provinceCode: string
+}
+
 export type AssessmentDraft = {
   propertySiteId: string
   preSurveyId?: string
@@ -220,9 +229,9 @@ export type AssessmentDraft = {
   site: {
     name: string
     ward: string
+    /** Bản nháp lưu trước khi có danh mục phường thì không có mã */
+    communeCode?: string
     streetLine: string
-    latitude: number
-    longitude: number
     installationSurfaceType: number
     surfaceMaterial: string
   }

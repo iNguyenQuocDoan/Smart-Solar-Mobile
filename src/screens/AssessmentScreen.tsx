@@ -4,9 +4,9 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Button, Field, IconButton, PageHeader, Panel, QueryState, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useAuth } from '@/contexts/AuthContext'
-import { keys } from '@/hooks/queries'
+import { keys, useHcmCommunes } from '@/hooks/queries'
 import { ApiError } from '@/lib/api/client'
-import { assessmentService } from '@/lib/api/services'
+import { HCM_PROVINCE, assessmentService } from '@/lib/api/services'
 import type { AssessmentDraft, AssessmentObstacle, AssessmentSurface } from '@/lib/api/types'
 import {
   clearAssessmentDraft,
@@ -15,15 +15,16 @@ import {
   rememberCustomerProfile,
   saveAssessmentDraft,
 } from '@/lib/assessmentStorage'
+import { wardCenter } from '@/lib/hcmWardCenters'
 import { useAppTheme } from '@/theme/theme'
 
 type ProfileForm = { customerType: 1 | 2; companyName: string; taxCode: string; note: string }
 type SiteForm = {
   name: string
   ward: string
+  /** Mã phường, xã đã chọn trong danh sách, rỗng khi chưa chọn */
+  communeCode: string
   streetLine: string
-  latitude: string
-  longitude: string
   installationSurfaceType: number
   surfaceMaterial: string
 }
@@ -32,7 +33,7 @@ type SurfaceForm = { widthM: string; lengthM: string; tiltDegree: string; azimut
 type Errors = Record<string, string>
 
 const emptyProfile: ProfileForm = { customerType: 2, companyName: '', taxCode: '', note: '' }
-const emptySite: SiteForm = { name: '', ward: '', streetLine: '', latitude: '', longitude: '', installationSurfaceType: 1, surfaceMaterial: '' }
+const emptySite: SiteForm = { name: '', ward: '', communeCode: '', streetLine: '', installationSurfaceType: 1, surfaceMaterial: '' }
 const emptySurface: SurfaceForm = { widthM: '', lengthM: '', tiltDegree: '', azimuthDegree: 180, obstacles: [] }
 const steps = ['Hồ sơ', 'Địa điểm', 'Mặt lắp', 'Xem lại']
 const surfaceTypes = [
@@ -50,6 +51,11 @@ const directions = [
 function num(value: string) {
   const parsed = Number(value.trim().replace(',', '.'))
   return value.trim() && Number.isFinite(parsed) ? parsed : null
+}
+
+/** Bỏ dấu để gõ "tan thuan" vẫn ra "Phường Tân Thuận" */
+function plain(text: string) {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim()
 }
 
 function fieldError(error: unknown) {
@@ -119,6 +125,46 @@ function ChoiceGroup<T extends string | number>({ label, value, options, onChang
   )
 }
 
+// Chọn phường, xã của TP.HCM từ danh mục của backend, gõ không dấu vẫn tìm được.
+// Lưu cả tên (để hiển thị) và mã (backend dùng mã để biết công trình thuộc khu vực nào, app lấy toạ độ theo mã)
+function WardPicker({ value, error, onChange }: { value: SiteForm; error?: string; onChange: (patch: Partial<SiteForm>) => void }) {
+  const theme = useAppTheme()
+  const communes = useHcmCommunes()
+  const [open, setOpen] = useState(false)
+  const matches = useMemo(() => {
+    const term = plain(value.ward)
+    return (communes.data ?? []).filter((item) => plain(item.name).includes(term)).slice(0, 8)
+  }, [communes.data, value.ward])
+
+  return (
+    <View style={styles.wardPicker}>
+      <Field
+        label="Phường, xã"
+        value={value.ward}
+        onFocus={() => setOpen(true)}
+        onChangeText={(ward) => { onChange({ ward, communeCode: '' }); setOpen(true) }}
+        placeholder={communes.isPending ? 'Đang tải danh sách…' : 'Gõ tên để tìm, không cần dấu'}
+        error={error}
+      />
+      {communes.isError ? <Button label="Tải lại danh sách phường, xã" icon="refresh" variant="secondary" compact onPress={() => void communes.refetch()} /> : null}
+      {open && !value.communeCode && matches.length ? (
+        <View style={[styles.wardList, { borderColor: theme.border }]}>
+          {matches.map((item) => (
+            <Pressable
+              key={item.code}
+              accessibilityRole="button"
+              onPress={() => { onChange({ ward: item.name, communeCode: item.code }); setOpen(false) }}
+              style={({ pressed }) => [styles.wardOption, { borderBottomColor: theme.border, backgroundColor: pressed ? theme.surfacePressed : theme.surface }]}
+            >
+              <Text style={[styles.choiceText, { color: theme.text }]}>{item.name}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  )
+}
+
 function StepBar({ current, firstStep }: { current: number; firstStep: number }) {
   const theme = useAppTheme()
   return (
@@ -169,7 +215,8 @@ export function AssessmentScreen() {
           setStep(profileExists ? 1 : 0)
           return
         }
-        setSite({ ...emptySite, ...stored.site, latitude: String(stored.site.latitude), longitude: String(stored.site.longitude) })
+        const { name, ward, communeCode = '', streetLine, installationSurfaceType, surfaceMaterial } = stored.site
+        setSite({ name, ward, communeCode, streetLine, installationSurfaceType, surfaceMaterial })
         let current = stored
         if (!current.preSurveyId) {
           const created = await assessmentService.createDraft(current.propertySiteId)
@@ -242,31 +289,29 @@ export function AssessmentScreen() {
 
   function validateSite() {
     const next: Errors = {}
-    const latitude = num(site.latitude)
-    const longitude = num(site.longitude)
     if (!site.name.trim()) next.name = 'Nhập tên để phân biệt công trình.'
-    if (!site.ward.trim()) next.ward = 'Nhập phường hoặc xã.'
-    if (latitude == null || latitude < -90 || latitude > 90) next.latitude = 'Vĩ độ phải từ -90 đến 90.'
-    if (longitude == null || longitude < -180 || longitude > 180) next.longitude = 'Kinh độ phải từ -180 đến 180.'
-    if (latitude === 0 && longitude === 0) next.latitude = 'Toạ độ (0, 0) không phải vị trí công trình.'
+    // Gõ tay thì không có mã phường, xã mà backend cần để xếp kỹ thuật viên theo khu vực
+    if (!site.communeCode) next.ward = site.ward.trim() ? 'Chọn phường, xã trong danh sách.' : 'Chọn phường, xã.'
     setErrors(next)
-    return Object.keys(next).length === 0 && latitude != null && longitude != null ? { latitude, longitude } : null
+    return Object.keys(next).length === 0
   }
 
   async function saveSite() {
-    const location = validateSite()
-    if (!location) return
+    if (!validateSite()) return
     setPending(true); setFormError('')
     try {
+      // Khách không nhập toạ độ: lấy điểm giữa của phường, xã đã chọn (đủ để ước tính sản lượng)
+      const center = wardCenter(site.communeCode)
       const siteBody = {
-        name: site.name.trim(), province: 'Thành phố Hồ Chí Minh', district: null, ward: site.ward.trim(),
-        streetLine: site.streetLine.trim() || null, latitude: location.latitude, longitude: location.longitude,
+        name: site.name.trim(), province: HCM_PROVINCE.name, provinceCode: HCM_PROVINCE.code, district: null,
+        ward: site.ward.trim(), communeCode: site.communeCode, streetLine: site.streetLine.trim() || null,
+        latitude: center?.latitude ?? null, longitude: center?.longitude ?? null,
         installationSurfaceType: site.installationSurfaceType, surfaceMaterial: site.surfaceMaterial.trim() || null, note: null,
       }
       const createdSite = await assessmentService.createSite(siteBody)
       let nextDraft: AssessmentDraft = {
         propertySiteId: createdSite.propertySiteId,
-        site: { ...site, name: siteBody.name, ward: siteBody.ward, latitude: location.latitude, longitude: location.longitude },
+        site: { ...site, name: siteBody.name, ward: siteBody.ward },
       }
       await saveAssessmentDraft(account, nextDraft)
       const createdDraft = await assessmentService.createDraft(createdSite.propertySiteId)
@@ -409,15 +454,11 @@ export function AssessmentScreen() {
   } else if (step === 1) {
     content = (
       <Panel>
-        <SectionTitle detail="Toạ độ dùng để xếp lịch và tính đường đi.">Địa điểm lắp đặt</SectionTitle>
+        <SectionTitle detail="Kỹ thuật viên phụ trách khu vực của phường, xã sẽ nhận lịch khảo sát.">Địa điểm lắp đặt</SectionTitle>
         <Field label="Tên địa điểm" value={site.name} onChangeText={(name) => updateSite({ name })} placeholder="Ví dụ: Nhà xưởng Quận 7" error={errors.name} />
         <Field label="Số nhà, tên đường" value={site.streetLine} onChangeText={(streetLine) => updateSite({ streetLine })} placeholder="Không bắt buộc" />
-        <Field label="Phường, xã" value={site.ward} onChangeText={(ward) => updateSite({ ward })} placeholder="Ví dụ: Phường Tân Thuận" error={errors.ward} />
+        <WardPicker value={site} error={errors.ward} onChange={updateSite} />
         <Field label="Tỉnh, thành phố" value="Thành phố Hồ Chí Minh" editable={false} />
-        <View style={styles.twoColumns}>
-          <View style={styles.column}><Field label="Vĩ độ" value={site.latitude} onChangeText={(latitude) => updateSite({ latitude })} placeholder="10.9036" keyboardType="decimal-pad" error={errors.latitude} /></View>
-          <View style={styles.column}><Field label="Kinh độ" value={site.longitude} onChangeText={(longitude) => updateSite({ longitude })} placeholder="106.7686" keyboardType="decimal-pad" error={errors.longitude} /></View>
-        </View>
         <ChoiceGroup label="Lắp trên bề mặt nào?" value={site.installationSurfaceType} options={surfaceTypes} onChange={(installationSurfaceType) => updateSite({ installationSurfaceType })} />
         <Field label="Vật liệu bề mặt" value={site.surfaceMaterial} onChangeText={(surfaceMaterial) => updateSite({ surfaceMaterial })} placeholder="Ví dụ: mái tôn, bê tông" />
       </Panel>
@@ -452,7 +493,7 @@ export function AssessmentScreen() {
   } else {
     content = (
       <View style={styles.reviewStack}>
-        <Panel><SectionTitle>Địa điểm</SectionTitle><ReviewRow label="Tên công trình" value={site.name} /><ReviewRow label="Địa chỉ" value={[site.streetLine, site.ward, 'TP.HCM'].filter(Boolean).join(', ')} /><ReviewRow label="Toạ độ" value={`${site.latitude}, ${site.longitude}`} /></Panel>
+        <Panel><SectionTitle>Địa điểm</SectionTitle><ReviewRow label="Tên công trình" value={site.name} /><ReviewRow label="Địa chỉ" value={[site.streetLine, site.ward, 'TP.HCM'].filter(Boolean).join(', ')} /></Panel>
         <Panel><SectionTitle>Mặt lắp</SectionTitle><ReviewRow label="Kích thước" value={`${surface.widthM} × ${surface.lengthM} m`} /><ReviewRow label="Độ dốc, hướng" value={`${surface.tiltDegree}° · ${directions.find((item) => item.value === surface.azimuthDegree)?.label}`} /><ReviewRow label="Tổng diện tích" value={parsedSurface ? `${parsedSurface.totalAreaM2.toLocaleString('vi-VN')} m²` : '—'} /><ReviewRow label="Dùng được" value={parsedSurface ? `${parsedSurface.usableAreaM2.toLocaleString('vi-VN')} m²` : '—'} /><ReviewRow label="Vật cản" value={surface.obstacles.length ? surface.obstacles.map((item) => item.name).join(', ') : 'Không có'} /></Panel>
         <View style={[styles.notice, { backgroundColor: theme.infoSoft }]}><Text style={[styles.noticeText, { color: theme.info }]}>Mô phỏng tấm pin không bắt buộc. Sau khi gửi, bạn chọn giờ để kỹ thuật viên tới đo lại tại công trình.</Text></View>
       </View>
@@ -496,6 +537,9 @@ const styles = StyleSheet.create({
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   choice: { minHeight: 44, borderWidth: 1, borderRadius: 6, paddingHorizontal: 13, alignItems: 'center', justifyContent: 'center' },
   choiceText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  wardPicker: { gap: 8 },
+  wardList: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
+  wardOption: { minHeight: 44, paddingHorizontal: 13, justifyContent: 'center', borderBottomWidth: StyleSheet.hairlineWidth },
   twoColumns: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   column: { flex: 1 },
   obstacleHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },

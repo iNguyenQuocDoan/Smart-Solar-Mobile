@@ -29,9 +29,12 @@ export function TechJobDetailScreen() {
     }
   }
 
+  // Tìm theo địa chỉ: toạ độ lưu kèm địa điểm chỉ là điểm giữa khu vực, không dùng để chỉ đường
   function openMap() {
-    if (!job || job.property.latitude == null || job.property.longitude == null) return
-    void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${job.property.latitude},${job.property.longitude}`)
+    if (!job) return
+    const p = job.property
+    const address = [p.streetLine, p.ward, p.district, p.province].filter(Boolean).join(', ')
+    void Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`)
   }
 
   return (
@@ -64,7 +67,7 @@ export function TechJobDetailScreen() {
               <KeyValue label="Quãng đường" value={formatDistance(job.inboundTravelEstimate?.distanceMeters)} />
               <KeyValue label="Thời gian" value={formatDuration(job.inboundTravelEstimate?.durationSeconds)} />
             </View>
-            {job.property.latitude != null && job.property.longitude != null ? <Button label="Mở bản đồ" icon="map-outline" variant="secondary" onPress={openMap} /> : null}
+            <Button label="Mở bản đồ" icon="map-outline" variant="secondary" onPress={openMap} />
           </Panel>
           <Panel>
             <SectionTitle>Công trình</SectionTitle>

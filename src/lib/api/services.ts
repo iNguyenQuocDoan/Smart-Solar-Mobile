@@ -3,6 +3,7 @@ import type {
   AuthTokens,
   AssessmentObstacle,
   AssessmentSurface,
+  Commune,
   CustomerAppointment,
   CustomerRequest,
   CustomerRequestDetail,
@@ -15,6 +16,10 @@ import type {
 } from '@/lib/api/types'
 
 const encode = encodeURIComponent
+const collator = new Intl.Collator('vi')
+
+/** TP.HCM, tỉnh duy nhất đang nhận công trình */
+export const HCM_PROVINCE = { code: '79', name: 'Thành phố Hồ Chí Minh' } as const
 
 export const authService = {
   login: (email: string, password: string) => apiPost<AuthTokens>('/auth/login', { email, password }),
@@ -59,15 +64,22 @@ export const assessmentService = {
   createSite: (body: {
     name: string
     province: string
+    provinceCode: string
     district: null
     ward: string
+    communeCode: string
     streetLine: string | null
-    latitude: number
-    longitude: number
+    latitude: number | null
+    longitude: number | null
     installationSurfaceType: number
     surfaceMaterial: string | null
     note: null
   }) => apiPost<{ propertySiteId: string }>('/customers/me/sites', body),
+  /** Phường, xã của TP.HCM, xếp theo tên */
+  listCommunes: async () => {
+    const communes = await apiGet<Commune[]>(`/administrative-units/communes?provinceCode=${HCM_PROVINCE.code}`)
+    return [...communes].sort((a, b) => collator.compare(a.name, b.name))
+  },
   createDraft: (propertySiteId: string) =>
     apiPost<{ preSurveyId: string }>('/pre-surveys', {
       propertySiteId,
