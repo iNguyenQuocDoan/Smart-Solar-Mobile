@@ -33,16 +33,16 @@ function Routes() {
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.canvas } }}>
         <Stack.Screen name="index" />
-        <Stack.Protected guard={!signedIn} redirectTo="/">
+        <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="login" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && session?.role === 'customer'} redirectTo="/unsupported-role">
+        <Stack.Protected guard={signedIn && session?.role === 'customer'}>
           <Stack.Screen name="customer" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && session?.role === 'technician'} redirectTo="/unsupported-role">
+        <Stack.Protected guard={signedIn && session?.role === 'technician'}>
           <Stack.Screen name="tech" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && !mobileRole} redirectTo="/">
+        <Stack.Protected guard={signedIn && !mobileRole}>
           <Stack.Screen name="unsupported-role" />
         </Stack.Protected>
       </Stack>
