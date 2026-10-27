@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs } from 'expo-router'
 import type { ComponentProps } from 'react'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAppTheme } from '@/theme/theme'
 
 type Icon = ComponentProps<typeof Ionicons>['name']
@@ -12,6 +13,7 @@ function icon(name: Icon) {
 
 export default function TechTabs() {
   const theme = useAppTheme()
+  const insets = useSafeAreaInsets()
   return (
     <Tabs
       screenOptions={{
@@ -21,9 +23,9 @@ export default function TechTabs() {
         tabBarStyle: {
           backgroundColor: theme.surface,
           borderTopColor: theme.border,
-          height: 64,
+          height: 64 + insets.bottom,
           paddingTop: 6,
-          paddingBottom: 7,
+          paddingBottom: 7 + insets.bottom,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         sceneStyle: { backgroundColor: theme.canvas },

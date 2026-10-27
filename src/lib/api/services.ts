@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiPut } from '@/lib/api/client'
 import type {
+  AcceptResult,
   AuthTokens,
   AssessmentObstacle,
   AssessmentSurface,
@@ -7,8 +8,10 @@ import type {
   CustomerAppointment,
   CustomerRequest,
   CustomerRequestDetail,
+  OpenAppointment,
   Product,
   ProductPage,
+  ReleaseResult,
   SurveySlots,
   TechnicianAppointment,
   TechnicianJob,
@@ -45,10 +48,14 @@ export const customerService = {
 export const technicianService = {
   listAppointments: () => apiGet<TechnicianAppointment[]>('/technicians/me/appointments'),
   getAppointment: (id: string) => apiGet<TechnicianJob>(`/technicians/me/appointments/${encode(id)}`),
-  acknowledge: (id: string) =>
-    apiPost<{ appointmentId: string; status: string; acknowledgedAt: string; alreadyAcknowledged: boolean }>(
-      `/technicians/me/appointments/${encode(id)}/acknowledge`,
-    ),
+  /** Lịch khách đặt trong khu vực của mình đang chờ người nhận, ai nhận trước thì được */
+  listOpen: () => apiGet<OpenAppointment[]>('/technicians/me/open-appointments'),
+  /** Người khác nhận trước thì trả 409 APPOINTMENT_ALREADY_TAKEN */
+  accept: (id: string, expectedRevision: number) =>
+    apiPost<AcceptResult>(`/technicians/me/appointments/${encode(id)}/accept`, { expectedRevision }),
+  /** Trả lại việc đã nhận, lịch quay về chờ kỹ thuật viên khác nhận */
+  release: (id: string, reason: string) =>
+    apiPost<ReleaseResult>(`/technicians/me/appointments/${encode(id)}/release`, { reason }),
   schedule: (date: string) => apiGet<TechnicianSchedule>(`/technicians/me/schedule?date=${encode(date)}`),
 }
 

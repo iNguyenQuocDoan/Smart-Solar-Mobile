@@ -21,6 +21,8 @@ export type CustomerAppointment = {
   startsAt: string
   endsAt: string
   status: string
+  /** Trạng thái khách thấy: WAITING_FOR_TECHNICIAN, NEEDS_STAFF, CONFIRMED, COMPLETED, CANCELLED */
+  acceptanceStatus: string
   technicianAssigned: boolean
   assignedTechnicianName: string | null
   customerNote: string | null
@@ -61,34 +63,62 @@ export type SurveySlot = {
   status: string
 }
 
+export type ZoneView = { zoneId: string; code: string; name: string }
+
 export type SurveySlots = {
   date: string
   timeZone: string
   appointmentDurationMinutes: number
+  zone: ZoneView | null
   slots: SurveySlot[]
-  routingStatus: string
-  unverifiedSlotCount: number
   note: string | null
+  /** COVERED, hoặc lý do ngày đó không có giờ để đặt */
+  coverageStatus: string
+  dispatchAvailable: boolean
 }
 
+/** Việc đã xác nhận: tự nhận hoặc được phân công */
 export type TechnicianAppointment = {
   appointmentId: string
   appointmentType: string
   startsAt: string
   endsAt: string
   status: string
+  /** SELF_ACCEPTED hoặc do kinh doanh / quản lý phân công */
+  assignmentSource: string | null
   propertyName: string
   province: string
   district: string | null
-  acknowledgedAt: string | null
+  assignedAt: string | null
 }
 
-export type TravelEstimate = {
-  distanceMeters?: number | null
-  durationSeconds?: number | null
-  durationInTrafficSeconds?: number | null
-  calculationStatus?: string | null
+/** Lịch đang chờ người nhận trong khu vực; địa chỉ cụ thể và liên hệ của khách chỉ có sau khi nhận */
+export type OpenAppointment = {
+  appointmentId: string
+  surveyRequestId: string
+  startsAt: string
+  endsAt: string
+  status: string
+  acceptanceDeadlineAt: string | null
+  /** Gửi lại làm expectedRevision khi nhận việc */
+  revision: number
+  zone: ZoneView | null
+  propertyName: string
+  province: string
+  district: string | null
+  ward: string | null
+  installationSurfaceType: string | null
+  totalAreaM2: number | null
+  usableAreaM2: number | null
+  /** Chỉ để gợi ý, lúc nhận việc backend kiểm tra lại */
+  canAccept: boolean
+  reason: string | null
+  requiresHoldRehoming: boolean
 }
+
+export type AcceptResult = { appointmentId: string; appointmentStatus: string; changed: boolean; revision: number }
+
+export type ReleaseResult = { appointmentId: string; appointmentStatus: string; hasNewHolder: boolean; message: string }
 
 export type TechnicianJob = {
   appointmentId: string
@@ -96,10 +126,12 @@ export type TechnicianJob = {
   startsAt: string
   endsAt: string
   status: string
+  assignmentSource: string | null
   assignedAt: string | null
-  acknowledgedAt: string | null
+  acceptedAt: string | null
   customerNote: string | null
   surveyRequestId: string
+  revision: number
   customer: { fullName: string; phone: string | null; email: string | null }
   property: {
     propertySiteId: string
@@ -124,7 +156,6 @@ export type TechnicianJob = {
     hasObstruction: boolean | null
     obstacleCount: number
   }
-  inboundTravelEstimate: TravelEstimate | null
 }
 
 export type ScheduleAppointment = {
@@ -133,24 +164,20 @@ export type ScheduleAppointment = {
   startsAt: string
   endsAt: string
   status: string
+  isCapacityHold: boolean
   propertyName: string
-  latitude: number | null
-  longitude: number | null
-  inboundTravel: TravelEstimate | null
-  routingStatus: string
+  /** Lịch trước kết thúc cộng khoảng nghỉ vẫn muộn hơn giờ bắt đầu lịch này */
   potentialConflict: boolean
 }
 
 export type TechnicianSchedule = {
+  technicianUserId: string
   date: string
   timeZone: string
   appointmentCount: number
-  estimatedTravelDistanceMeters: number
-  estimatedTravelSeconds: number
-  safetyBufferMinutesTotal: number
+  /** Khoảng nghỉ cố định giữa hai lịch, tính bằng phút */
+  bufferBetweenAppointmentsMinutes: number
   conflictCount: number
-  routesNeedingReview: number
-  earliestBaseDeparture: string
   appointments: ScheduleAppointment[]
   note: string
 }

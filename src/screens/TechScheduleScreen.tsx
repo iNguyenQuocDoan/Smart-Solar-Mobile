@@ -2,8 +2,8 @@ import { useRouter, type Href } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useState } from 'react'
 import { useTechSchedule } from '@/hooks/queries'
-import { addDays, formatDay, formatDistance, formatDuration, formatTimeRange, todayVn } from '@/lib/format'
-import { appointmentStatus, routingStatus } from '@/lib/status'
+import { addDays, formatDay, formatTimeRange, todayVn } from '@/lib/format'
+import { appointmentStatus } from '@/lib/status'
 import { Badge, IconButton, Metric, PageHeader, Panel, QueryState, Screen, StateView } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
@@ -13,12 +13,14 @@ export function TechScheduleScreen() {
   const [date, setDate] = useState(todayVn())
   const query = useTechSchedule(date)
   const schedule = query.data
+  // Lịch riêng của kỹ thuật viên không kèm chỗ giữ tạm, lọc thêm cho chắc
+  const items = schedule?.appointments.filter((item) => !item.isCapacityHold) ?? []
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
       <PageHeader
         eyebrow="Hiện trường"
         title="Lịch làm việc"
-        description="Giờ và đường đi được hiển thị theo múi giờ Việt Nam."
+        description="Các lịch bạn đã nhận, giờ theo múi giờ Việt Nam."
       />
       <View style={styles.dayNav}>
         <IconButton label="Ngày trước" icon="chevron-back" onPress={() => setDate((value) => addDays(value, -1))} />
@@ -31,24 +33,24 @@ export function TechScheduleScreen() {
           <Panel style={styles.metrics}>
             <Metric label="Lịch hẹn" value={String(schedule.appointmentCount)} />
             <View style={[styles.rule, { backgroundColor: theme.border }]} />
-            <Metric label="Quãng đường" value={formatDistance(schedule.estimatedTravelDistanceMeters)} />
+            <Metric label="Nghỉ giữa hai lịch" value={`${schedule.bufferBetweenAppointmentsMinutes} phút`} />
             <View style={[styles.rule, { backgroundColor: theme.border }]} />
-            <Metric label="Di chuyển" value={formatDuration(schedule.estimatedTravelSeconds)} />
+            <Metric label="Sát giờ" value={String(schedule.conflictCount)} />
           </Panel>
-          {schedule.conflictCount > 0 || schedule.routesNeedingReview > 0 ? (
+          {schedule.conflictCount > 0 ? (
             <View style={[styles.warning, { backgroundColor: theme.warningSoft }]}>
               <Text style={[styles.warningText, { color: theme.warning }]}>
-                {schedule.conflictCount > 0 ? `${schedule.conflictCount} lịch có nguy cơ trùng giờ. ` : ''}
-                {schedule.routesNeedingReview > 0 ? `${schedule.routesNeedingReview} chặng đường cần kiểm tra.` : ''}
+                {schedule.conflictCount} lịch bắt đầu khi chưa đủ {schedule.bufferBetweenAppointmentsMinutes} phút nghỉ
+                sau lịch trước.
               </Text>
             </View>
           ) : null}
-          {schedule.appointments.length === 0 ? (
+          {items.length === 0 ? (
             <StateView icon="calendar-clear-outline" title="Ngày này chưa có lịch" />
           ) : (
             <View style={[styles.list, { borderColor: theme.border }]}>
-              {schedule.appointments.map((item, index) => {
-                const route = routingStatus(item.routingStatus)
+              {items.map((item, index) => {
+                const status = appointmentStatus(item.status, 'technician')
                 return (
                   <Pressable
                     key={item.appointmentId}
@@ -63,7 +65,7 @@ export function TechScheduleScreen() {
                         backgroundColor: pressed ? theme.surfacePressed : theme.surface,
                         borderBottomColor: theme.border,
                       },
-                      index === schedule.appointments.length - 1 && styles.last,
+                      index === items.length - 1 && styles.last,
                     ]}
                   >
                     <Text style={[styles.time, { color: theme.text }]}>
@@ -71,17 +73,9 @@ export function TechScheduleScreen() {
                     </Text>
                     <Text style={[styles.name, { color: theme.text }]}>{item.propertyName}</Text>
                     <View style={styles.badges}>
-                      <Badge tone={appointmentStatus(item.status, 'technician').tone}>
-                        {appointmentStatus(item.status, 'technician').label}
-                      </Badge>
-                      <Badge tone={route.tone}>{route.label}</Badge>
+                      <Badge tone={status.tone}>{status.label}</Badge>
+                      {item.potentialConflict ? <Badge tone="warning">Sát giờ lịch trước</Badge> : null}
                     </View>
-                    {item.routingStatus === 'OK' && item.inboundTravel ? (
-                      <Text style={[styles.travel, { color: theme.textMuted }]}>
-                        {formatDistance(item.inboundTravel.distanceMeters)} ·{' '}
-                        {formatDuration(item.inboundTravel.durationSeconds)}
-                      </Text>
-                    ) : null}
                   </Pressable>
                 )
               })}
@@ -106,5 +100,4 @@ const styles = StyleSheet.create({
   time: { fontSize: 17, lineHeight: 23, fontWeight: '800', fontVariant: ['tabular-nums'] },
   name: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  travel: { fontSize: 13, lineHeight: 18 },
 })

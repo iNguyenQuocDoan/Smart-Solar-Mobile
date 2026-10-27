@@ -63,21 +63,17 @@ export function formatAppointment(start: string, end: string) {
   return `${formatDay(dateOf(start))}, ${formatTimeRange(start, end)}`
 }
 
+/** "27/10 15:00" theo giờ Việt Nam */
+export function formatMoment(iso: string | null | undefined) {
+  return iso ? `${formatShortDate(dateOf(iso))} ${formatTime(iso)}` : '—'
+}
+
+export function formatArea(value: number | null | undefined) {
+  return value == null ? '—' : `${decimal.format(value)} m²`
+}
+
 export function formatMoney(value?: number | null) {
   return value == null ? 'Liên hệ' : money.format(value)
-}
-
-export function formatDistance(value?: number | null) {
-  if (value == null) return 'Chưa có'
-  return value < 1000 ? `${Math.round(value)} m` : `${decimal.format(value / 1000)} km`
-}
-
-export function formatDuration(value?: number | null) {
-  if (value == null) return 'Chưa có'
-  const minutes = Math.ceil(value / 60)
-  if (minutes < 60) return `${minutes} phút`
-  const hours = Math.floor(minutes / 60)
-  return `${hours} giờ${minutes % 60 ? ` ${minutes % 60} phút` : ''}`
 }
 
 export function shortCode(id: string) {

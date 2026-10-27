@@ -11,7 +11,7 @@ import {
   shortCode,
   todayVn,
 } from '@/lib/format'
-import { canBook, customerStatus } from '@/lib/status'
+import { canBook, coverageText, customerStatus, historyStatusLabel } from '@/lib/status'
 import {
   Badge,
   Button,
@@ -43,6 +43,7 @@ function BookingForm({
   const [selected, setSelected] = useState('')
   const [note, setNote] = useState('')
   const slots = useSurveySlots(propertySiteId, date, true)
+  const openSlots = slots.data?.slots.filter((slot) => slot.canBook) ?? []
   const mutation = useBookingMutation(requestId, mode)
   const firstDate = todayVn()
   const lastDate = addDays(firstDate, 29)
@@ -82,38 +83,36 @@ function BookingForm({
       </View>
       <QueryState loading={slots.isPending} error={slots.error} onRetry={() => void slots.refetch()} />
       {!slots.isPending && !slots.error ? (
-        slots.data?.slots.length ? (
+        openSlots.length ? (
           <View style={styles.slotGrid}>
-            {slots.data.slots
-              .filter((slot) => slot.canBook)
-              .map((slot) => {
-                const active = selected === slot.startsAt
-                return (
-                  <Pressable
-                    key={slot.startsAt}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected: active }}
-                    onPress={() => setSelected(slot.startsAt)}
-                    style={({ pressed }) => [
-                      styles.slot,
-                      {
-                        borderColor: active ? theme.brand : theme.border,
-                        backgroundColor: active ? theme.brandSoft : pressed ? theme.surfacePressed : theme.surface,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.slotText, { color: active ? theme.brandText : theme.text }]}>
-                      {formatTimeRange(slot.startsAt, slot.endsAt)}
-                    </Text>
-                  </Pressable>
-                )
-              })}
+            {openSlots.map((slot) => {
+              const active = selected === slot.startsAt
+              return (
+                <Pressable
+                  key={slot.startsAt}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setSelected(slot.startsAt)}
+                  style={({ pressed }) => [
+                    styles.slot,
+                    {
+                      borderColor: active ? theme.brand : theme.border,
+                      backgroundColor: active ? theme.brandSoft : pressed ? theme.surfacePressed : theme.surface,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.slotText, { color: active ? theme.brandText : theme.text }]}>
+                    {formatTimeRange(slot.startsAt, slot.endsAt)}
+                  </Text>
+                </Pressable>
+              )
+            })}
           </View>
         ) : (
           <StateView
             icon="calendar-clear-outline"
             title="Ngày này không còn giờ trống"
-            description={slots.data?.note ?? 'Chọn ngày khác để tiếp tục.'}
+            description={coverageText(slots.data?.coverageStatus) ?? 'Chọn ngày khác để tiếp tục.'}
           />
         )
       ) : null}
@@ -202,7 +201,7 @@ export function CustomerRequestDetailScreen() {
                 </Text>
                 <KeyValue
                   label="Kỹ thuật viên"
-                  value={request.appointment.assignedTechnicianName ?? 'Đang chờ phân công'}
+                  value={request.appointment.assignedTechnicianName ?? 'Chưa có kỹ thuật viên nhận'}
                 />
                 <KeyValue label="Ghi chú của bạn" value={request.appointment.customerNote || '—'} />
                 {request.appointment.canCustomerChange ? (
@@ -242,7 +241,7 @@ export function CustomerRequestDetailScreen() {
                     {formatAppointment(item.startsAt, item.endsAt)}
                   </Text>
                   <Text style={[styles.historyStatus, { color: theme.textMuted }]}>
-                    {item.status === 'CANCELLED' ? 'Đã huỷ hoặc đổi giờ' : item.status}
+                    {historyStatusLabel(item.status)}
                   </Text>
                 </View>
               ))}

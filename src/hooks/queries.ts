@@ -5,9 +5,12 @@ export const keys = {
   customerRequests: ['customer-requests'] as const,
   customerRequest: (id: string) => ['customer-requests', id] as const,
   slots: (siteId: string, date: string) => ['survey-slots', siteId, date] as const,
+  /** Gốc chung của việc chờ nhận, việc của tôi và lịch ngày */
   techJobs: ['technician-jobs'] as const,
-  techJob: (id: string) => ['technician-jobs', id] as const,
-  schedule: (date: string) => ['technician-schedule', date] as const,
+  techMine: ['technician-jobs', 'mine'] as const,
+  techOpen: ['technician-jobs', 'open'] as const,
+  schedule: (date: string) => ['technician-jobs', 'schedule', date] as const,
+  techJob: (id: string) => ['technician-job', id] as const,
   products: (search: string) => ['products', search] as const,
   product: (id: string) => ['products', 'detail', id] as const,
   communes: ['communes', '79'] as const,
@@ -70,8 +73,19 @@ export function useCancelBooking(id: string) {
   })
 }
 
+/** Lịch mới khách đặt hiện ra mà không cần kéo xuống tải lại */
+const JOBS_REFRESH_MS = 60_000
+
 export function useTechJobs() {
-  return useQuery({ queryKey: keys.techJobs, queryFn: technicianService.listAppointments })
+  return useQuery({
+    queryKey: keys.techMine,
+    queryFn: technicianService.listAppointments,
+    refetchInterval: JOBS_REFRESH_MS,
+  })
+}
+
+export function useOpenJobs() {
+  return useQuery({ queryKey: keys.techOpen, queryFn: technicianService.listOpen, refetchInterval: JOBS_REFRESH_MS })
 }
 
 export function useTechJob(id: string) {
@@ -82,17 +96,23 @@ export function useTechJob(id: string) {
   })
 }
 
-export function useAcknowledgeJob(id: string) {
+// Nhận hay trả việc đều đổi cả việc chờ nhận, việc của tôi và lịch ngày. Chi tiết việc vừa trả không tải lại vì đã hết quyền xem
+function useRefreshTechJobs() {
   const client = useQueryClient()
+  return () => client.invalidateQueries({ queryKey: keys.techJobs })
+}
+
+export function useAcceptJob() {
+  const refresh = useRefreshTechJobs()
   return useMutation({
-    mutationFn: () => technicianService.acknowledge(id),
-    onSuccess: async () => {
-      await Promise.all([
-        client.invalidateQueries({ queryKey: keys.techJobs }),
-        client.invalidateQueries({ queryKey: keys.techJob(id) }),
-      ])
-    },
+    mutationFn: ({ id, revision }: { id: string; revision: number }) => technicianService.accept(id, revision),
+    onSettled: refresh,
   })
+}
+
+export function useReleaseJob(id: string) {
+  const refresh = useRefreshTechJobs()
+  return useMutation({ mutationFn: (reason: string) => technicianService.release(id, reason), onSettled: refresh })
 }
 
 export function useTechSchedule(date: string) {

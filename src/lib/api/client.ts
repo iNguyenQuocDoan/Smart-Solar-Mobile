@@ -23,14 +23,24 @@ const messages: Record<string, string> = {
   AUTH_FORBIDDEN: 'Tài khoản không có quyền xem nội dung này.',
   SURVEY_SLOT_UNAVAILABLE: 'Giờ vừa chọn không còn trống. Hãy chọn giờ khác.',
   INVALID_BOOKING_STATE: 'Lịch hẹn đã thay đổi. Hãy tải lại để xem trạng thái mới nhất.',
-  PROPERTY_SITE_LOCATION_REQUIRED: 'Địa điểm chưa có tọa độ GPS nên chưa thể xếp lịch khảo sát.',
+  PROPERTY_SITE_LOCATION_REQUIRED: 'Địa điểm chưa có mã phường, xã nên chưa thể xếp lịch khảo sát.',
   CUSTOMER_ALREADY_EXISTS: 'Tài khoản đã có hồ sơ khách hàng.',
   PRE_SURVEY_INCOMPLETE: 'Bản đánh giá còn thiếu số liệu mặt lắp.',
   PRE_SURVEY_CONCURRENTLY_MODIFIED: 'Bản đánh giá vừa được sửa ở thiết bị khác. Hãy tải lại dữ liệu mới nhất.',
   PRE_SURVEY_NOT_EDITABLE: 'Bản đánh giá đã gửi nên không thể sửa tiếp.',
   PRE_SURVEY_ALREADY_SUBMITTED: 'Bản đánh giá này đã được gửi trước đó.',
   TECHNICIAN_NOT_ASSIGNED: 'Lịch này không còn được giao cho bạn.',
-  APPOINTMENT_NOT_FOUND: 'Không tìm thấy lịch hẹn.',
+  APPOINTMENT_NOT_FOUND: 'Không tìm thấy lịch hẹn, hoặc lịch không còn giao cho bạn.',
+  APPOINTMENT_ALREADY_TAKEN: 'Lịch này vừa có người nhận trước.',
+  APPOINTMENT_CONCURRENCY_CONFLICT: 'Lịch hẹn vừa được thay đổi ở nơi khác. Hãy tải lại rồi thử lần nữa.',
+  TECHNICIAN_SCHEDULE_CONFLICT: 'Bạn đã có lịch khác, hoặc chưa đủ thời gian nghỉ giữa hai việc, vào giờ này.',
+  DAILY_LIMIT_REACHED: 'Bạn đã đủ số lịch trong ngày này.',
+  OUTSIDE_WORKING_HOURS: 'Giờ hẹn nằm ngoài giờ làm của bạn.',
+  TECHNICIAN_ON_LEAVE: 'Bạn đang nghỉ vào thời gian này.',
+  TECHNICIAN_SCHEDULING_DISABLED: 'Bạn đang tắt nhận lịch.',
+  TECHNICIAN_OUTSIDE_ZONE: 'Công trình không thuộc khu vực của bạn.',
+  ONSITE_SURVEY_IN_PROGRESS: 'Buổi khảo sát đã bắt đầu nên không đổi được lịch này.',
+  SCHEDULING_VALIDATION_FAILED: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.',
 }
 
 const statusMessages: Record<number, string> = {
@@ -40,8 +50,8 @@ const statusMessages: Record<number, string> = {
   404: 'Không tìm thấy dữ liệu yêu cầu.',
   409: 'Dữ liệu vừa thay đổi. Hãy tải lại và thử lần nữa.',
   429: 'Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.',
-  500: 'Máy chủ đang gặp sự cố. Vui lòng thử lại sau.',
-  503: 'Máy chủ đang bảo trì. Vui lòng thử lại sau.',
+  500: 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.',
+  503: 'Hệ thống đang bảo trì. Vui lòng thử lại sau.',
 }
 
 export class ApiError extends Error {
@@ -86,8 +96,9 @@ function unwrap<T>(status: number, body: unknown): T {
     const envelope = body as ApiEnvelope<T>
     if (envelope.isSuccess === false) {
       const code = envelope.error?.code ?? null
+      // Câu lỗi của backend là tiếng Anh nên chỉ dùng khi không có câu tiếng Việt nào hợp
       throw new ApiError(
-        messages[code ?? ''] ?? envelope.error?.message ?? statusMessages[status] ?? 'Đã xảy ra lỗi.',
+        messages[code ?? ''] ?? statusMessages[status] ?? envelope.error?.message ?? 'Đã xảy ra lỗi.',
         status,
         code,
       )
@@ -142,7 +153,7 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
       body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch {
-    throw new ApiError('Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.', 0)
+    throw new ApiError('Không kết nối được. Kiểm tra mạng rồi thử lại.', 0)
   }
 
   if (response.status === 401 && retry && !publicPath(path) && (await getRefreshToken())) {
@@ -172,8 +183,8 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
     const code = typeof codeValue === 'string' ? codeValue : null
     const message =
       messages[code ?? ''] ??
-      (typeof messageValue === 'string' ? messageValue : null) ??
       statusMessages[response.status] ??
+      (typeof messageValue === 'string' ? messageValue : null) ??
       'Đã xảy ra lỗi. Vui lòng thử lại.'
     throw new ApiError(message, response.status, code)
   }

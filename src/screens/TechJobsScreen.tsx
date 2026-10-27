@@ -1,59 +1,88 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useTechJobs } from '@/hooks/queries'
+import { useOpenJobs, useTechJobs } from '@/hooks/queries'
 import { PageHeader, QueryState, Screen, StateView } from '@/components/ui'
 import { TechJobRow } from '@/components/TechJobRow'
+import { TechOpenJobRow } from '@/components/TechOpenJobRow'
 import { useAppTheme } from '@/theme/theme'
+
+type Tab = 'open' | 'upcoming' | 'past'
+
+const TAB_LABELS: Record<Tab, string> = { open: 'Chờ nhận', upcoming: 'Sắp tới', past: 'Đã qua' }
 
 export function TechJobsScreen() {
   const theme = useAppTheme()
-  const query = useTechJobs()
-  const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming')
+  const open = useOpenJobs()
+  const mine = useTechJobs()
+  const [picked, setPicked] = useState<Tab | null>(null)
   const [now] = useState(() => Date.now())
-  const all = query.data ?? []
+  const openJobs = [...(open.data ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+  const all = mine.data ?? []
   const upcoming = all
     .filter((job) => new Date(job.endsAt).getTime() >= now)
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
   const past = all
     .filter((job) => new Date(job.endsAt).getTime() < now)
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt))
+  const canTake = openJobs.filter((job) => job.canAccept).length
+  // Mở sẵn mục "Chờ nhận" khi có lịch nhận được
+  const tab: Tab = picked ?? (canTake > 0 ? 'open' : 'upcoming')
+  const counts: Record<Tab, number> = { open: openJobs.length, upcoming: upcoming.length, past: past.length }
+  const query = tab === 'open' ? open : mine
   const shown = tab === 'upcoming' ? upcoming : past
-  const waiting = upcoming.filter((job) => job.status === 'ASSIGNED').length
 
   return (
-    <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
+    <Screen
+      refreshing={open.isRefetching || mine.isRefetching}
+      onRefresh={() => void Promise.all([open.refetch(), mine.refetch()])}
+    >
       <PageHeader
         eyebrow="Kỹ thuật viên"
         title="Việc của tôi"
         description={
-          waiting ? `${waiting} lịch đang chờ bạn xác nhận nhận việc.` : 'Các lịch khảo sát được phân công cho bạn.'
+          canTake
+            ? `${canTake} lịch trong khu vực đang chờ người nhận.`
+            : 'Các lịch khảo sát bạn đã nhận hoặc được phân công.'
         }
       />
       <View accessibilityRole="tablist" style={[styles.tabs, { backgroundColor: theme.surfaceMuted }]}>
-        {(['upcoming', 'past'] as const).map((value) => {
+        {(['open', 'upcoming', 'past'] as const).map((value) => {
           const active = tab === value
-          const count = value === 'upcoming' ? upcoming.length : past.length
           return (
             <Pressable
               key={value}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
-              onPress={() => setTab(value)}
+              onPress={() => setPicked(value)}
               style={[styles.tab, active && { backgroundColor: theme.surface, borderColor: theme.border }]}
             >
               <Text style={[styles.tabText, { color: active ? theme.text : theme.textMuted }]}>
-                {value === 'upcoming' ? 'Sắp tới' : 'Đã qua'} · {count}
+                {TAB_LABELS[value]} · {counts[value]}
               </Text>
             </Pressable>
           )
         })}
       </View>
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
-      {!query.isPending && !query.error && shown.length === 0 ? (
+      {query.isPending || query.error ? null : tab === 'open' ? (
+        openJobs.length === 0 ? (
+          <StateView
+            icon="calendar-clear-outline"
+            title="Không có lịch nào đang chờ"
+            description="Khi khách trong khu vực của bạn đặt giờ khảo sát, lịch sẽ hiện ở đây để bạn nhận."
+          />
+        ) : (
+          <View style={[styles.list, { borderColor: theme.border }]}>
+            {openJobs.map((job, index) => (
+              <TechOpenJobRow key={job.appointmentId} job={job} last={index === openJobs.length - 1} />
+            ))}
+          </View>
+        )
+      ) : shown.length === 0 ? (
         <StateView
           icon="calendar-clear-outline"
           title={tab === 'upcoming' ? 'Chưa có lịch sắp tới' : 'Chưa có lịch đã qua'}
-          description={tab === 'upcoming' ? 'Lịch được kinh doanh phân công sẽ xuất hiện tại đây.' : undefined}
+          description={tab === 'upcoming' ? 'Nhận lịch ở mục "Chờ nhận" thì lịch hiện ở đây.' : undefined}
         />
       ) : (
         <View style={[styles.list, { borderColor: theme.border }]}>
