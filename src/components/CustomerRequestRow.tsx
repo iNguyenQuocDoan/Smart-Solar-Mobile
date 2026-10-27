@@ -15,7 +15,9 @@ export function CustomerRequestRow({ request, last = false }: { request: Custome
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`Xem yêu cầu ${request.propertyName || shortCode(request.surveyRequestId)}`}
-      onPress={() => router.push({ pathname: '/customer/request/[id]', params: { id: request.surveyRequestId } } as Href)}
+      onPress={() =>
+        router.push({ pathname: '/customer/request/[id]', params: { id: request.surveyRequestId } } as Href)
+      }
       style={({ pressed }) => [
         styles.row,
         { backgroundColor: pressed ? theme.surfacePressed : theme.surface, borderBottomColor: theme.border },
@@ -23,10 +25,14 @@ export function CustomerRequestRow({ request, last = false }: { request: Custome
       ]}
     >
       <View style={styles.copy}>
-        <Text style={[styles.name, { color: theme.text }]} numberOfLines={2}>{request.propertyName || 'Công trình chưa đặt tên'}</Text>
+        <Text style={[styles.name, { color: theme.text }]} numberOfLines={2}>
+          {request.propertyName || 'Công trình chưa đặt tên'}
+        </Text>
         <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(request.surveyRequestId)}</Text>
         {request.appointment ? (
-          <Text style={[styles.time, { color: theme.text }]}>{formatAppointment(request.appointment.startsAt, request.appointment.endsAt)}</Text>
+          <Text style={[styles.time, { color: theme.text }]}>
+            {formatAppointment(request.appointment.startsAt, request.appointment.endsAt)}
+          </Text>
         ) : null}
         <Badge tone={status.tone}>{status.label}</Badge>
       </View>
@@ -36,7 +42,14 @@ export function CustomerRequestRow({ request, last = false }: { request: Custome
 }
 
 const styles = StyleSheet.create({
-  row: { minHeight: 112, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: {
+    minHeight: 112,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   last: { borderBottomWidth: 0 },
   copy: { flex: 1, alignItems: 'flex-start', gap: 5 },
   name: { fontSize: 16, lineHeight: 22, fontWeight: '700' },

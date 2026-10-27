@@ -43,36 +43,65 @@ export function MonitoringHistoryScreen() {
   } else if (!sites.data) {
     body = sites.error ? <ErrorBlock error={sites.error} onRetry={refresh} /> : null
   } else if (!site) {
-    body = <StateView icon="sunny-outline" title="Chưa có hệ thống được giám sát" description="Lịch sử dữ liệu sẽ có sau khi công trình được lắp thiết bị đo." />
+    body = (
+      <StateView
+        icon="sunny-outline"
+        title="Chưa có hệ thống được giám sát"
+        description="Lịch sử dữ liệu sẽ có sau khi công trình được lắp thiết bị đo."
+      />
+    )
   } else if (!device) {
-    body = <StateView icon="hardware-chip-outline" title="Công trình chưa có thiết bị giám sát" description="Chưa có thiết bị nào để xem lịch sử dữ liệu." />
+    body = (
+      <StateView
+        icon="hardware-chip-outline"
+        title="Công trình chưa có thiết bị giám sát"
+        description="Chưa có thiết bị nào để xem lịch sử dữ liệu."
+      />
+    )
   } else {
     const status = deviceStatusView(device, sitesRefreshFailed)
     const refreshError = sitesRefreshFailed ? sites.error : readingsRefreshFailed ? readings.error : null
     body = (
       <>
-        <DeviceSwitcher devices={site.devices} selectedId={device.deviceId} onSelect={(deviceId) => select(site.siteId, deviceId)} />
+        <DeviceSwitcher
+          devices={site.devices}
+          selectedId={device.deviceId}
+          onSelect={(deviceId) => select(site.siteId, deviceId)}
+        />
         <View style={styles.pills}>
           <StatusPill label={status.label} tone={status.tone} icon={status.icon} />
           {device.lastReading?.isTest ? <TestDataPill /> : null}
         </View>
         <RangeSelector windows={HISTORY_WINDOWS} selectedId={windowId} onSelect={setWindowId} />
         {refreshError ? (
-          <RefreshNotice error={refreshError} updatedAt={sitesRefreshFailed ? sites.dataUpdatedAt : readings.dataUpdatedAt} now={now} onRetry={refresh} />
+          <RefreshNotice
+            error={refreshError}
+            updatedAt={sitesRefreshFailed ? sites.dataUpdatedAt : readings.dataUpdatedAt}
+            now={now}
+            onRetry={refresh}
+          />
         ) : null}
         {readings.isPending ? (
           <LoadingBlock label="Đang tải lịch sử…" />
         ) : !readings.data ? (
-          readings.error ? <ErrorBlock error={readings.error} onRetry={() => void readings.refetch()} /> : null
+          readings.error ? (
+            <ErrorBlock error={readings.error} onRetry={() => void readings.refetch()} />
+          ) : null
         ) : readings.data.length === 0 || !summary ? (
-          <StateView icon="hourglass-outline" title="Chưa nhận được dữ liệu" description="Thiết bị chưa gửi số đo nào lên hệ thống." />
+          <StateView
+            icon="hourglass-outline"
+            title="Chưa nhận được dữ liệu"
+            description="Thiết bị chưa gửi số đo nào lên hệ thống."
+          />
         ) : (
           <>
             <Panel>
               <SectionTitle
                 detail={[
                   `${summary.total} số đo`,
-                  summary.from != null && summary.to != null ? `${formatReceivedAt(summary.from, now)} – ${formatReceivedAt(summary.to, now)}` : null,
+                  summary.from != null && summary.to != null
+                    ? `${formatReceivedAt(summary.from, now)} – ${formatReceivedAt(summary.to, now)}`
+                    : null,
                   summary.missing ? `${summary.missing} số đo không có giá trị` : null,
                 ]
                   .filter(Boolean)

@@ -21,6 +21,14 @@ export function TestDataPill() {
 }
 
 const styles = StyleSheet.create({
-  pill: { minHeight: 28, borderRadius: 999, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 5 },
+  pill: {
+    minHeight: 28,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 5,
+  },
   text: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
 })

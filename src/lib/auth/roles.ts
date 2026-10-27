@@ -20,7 +20,10 @@ const dotnetRole = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role
 const dotnetEmail = 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
 
 function normalize(value: string) {
-  return value.trim().toLowerCase().replace(/[\s_-]/g, '')
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]/g, '')
 }
 
 function parseRole(value: unknown): UserRole | null {

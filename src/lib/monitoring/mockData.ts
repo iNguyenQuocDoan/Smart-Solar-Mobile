@@ -2,15 +2,7 @@
 // must also show the "Dữ liệu minh họa" banner.
 
 export type DemoScenario =
-  | 'normal'
-  | 'offline'
-  | 'stale'
-  | 'unknown'
-  | 'uncalibrated'
-  | 'test-data'
-  | 'no-readings'
-  | 'no-devices'
-  | 'no-sites'
+  'normal' | 'offline' | 'stale' | 'unknown' | 'uncalibrated' | 'test-data' | 'no-readings' | 'no-devices' | 'no-sites'
 
 export type DemoFault = 'none' | 'network' | 'server' | 'slow'
 
@@ -18,12 +10,28 @@ export type DemoConfig = { scenario: DemoScenario; fault: DemoFault }
 
 export const DEMO_SCENARIOS: { value: DemoScenario; label: string; description: string }[] = [
   { value: 'normal', label: 'Bình thường', description: 'Các thiết bị đang gửi số đo đều đặn.' },
-  { value: 'offline', label: 'Thiết bị mất kết nối', description: 'Thiết bị đầu tiên của mỗi công trình mất kết nối, giữ số đo cuối cùng.' },
+  {
+    value: 'offline',
+    label: 'Thiết bị mất kết nối',
+    description: 'Thiết bị đầu tiên của mỗi công trình mất kết nối, giữ số đo cuối cùng.',
+  },
   { value: 'stale', label: 'Dữ liệu cũ', description: 'Thiết bị đầu tiên chưa gửi số đo mới từ một lúc trước.' },
-  { value: 'unknown', label: 'Chưa có quy tắc trạng thái', description: 'Máy chủ chưa xác định được kết nối, như khi nối API thật hiện nay.' },
-  { value: 'uncalibrated', label: 'Cảm biến chưa hiệu chuẩn', description: 'Chỉ có giá trị ADC thô, chưa có dòng điện (A).' },
+  {
+    value: 'unknown',
+    label: 'Chưa có quy tắc trạng thái',
+    description: 'Máy chủ chưa xác định được kết nối, như khi nối API thật hiện nay.',
+  },
+  {
+    value: 'uncalibrated',
+    label: 'Cảm biến chưa hiệu chuẩn',
+    description: 'Chỉ có giá trị ADC thô, chưa có dòng điện (A).',
+  },
   { value: 'test-data', label: 'Dữ liệu thử nghiệm', description: 'Số đo được thiết bị đánh dấu là dữ liệu thử.' },
-  { value: 'no-readings', label: 'Chưa nhận dữ liệu', description: 'Thiết bị đầu tiên đã được gắn nhưng chưa gửi số đo nào.' },
+  {
+    value: 'no-readings',
+    label: 'Chưa nhận dữ liệu',
+    description: 'Thiết bị đầu tiên đã được gắn nhưng chưa gửi số đo nào.',
+  },
   { value: 'no-devices', label: 'Chưa có thiết bị', description: 'Công trình chưa được gắn thiết bị giám sát.' },
   { value: 'no-sites', label: 'Chưa có công trình', description: 'Tài khoản chưa có hệ thống nào được giám sát.' },
 ]

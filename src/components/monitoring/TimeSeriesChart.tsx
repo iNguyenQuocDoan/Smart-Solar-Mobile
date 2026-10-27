@@ -80,7 +80,11 @@ function TimeSeriesChartBase({
   const radius = barWidth >= 8 ? 4 : barWidth >= 4 ? 2 : 0
   const selectedIndex = selectedKey == null ? -1 : points.findIndex((point) => point.key === selectedKey)
   const selected = selectedIndex >= 0 ? points[selectedIndex]! : null
-  const readout = selected ? (selected.value == null ? 'Không có số đo' : `${formatValue(selected.value)} ${unit}`) : null
+  const readout = selected
+    ? selected.value == null
+      ? 'Không có số đo'
+      : `${formatValue(selected.value)} ${unit}`
+    : null
 
   function pick(x: number) {
     let best = 0
@@ -102,7 +106,9 @@ function TimeSeriesChartBase({
         {selected ? (
           <>
             <Text style={[styles.readoutValue, { color: theme.text }]}>{readout}</Text>
-            <Text style={[styles.readoutMeta, { color: theme.textMuted }]}>{[formatTime(selected.time), selected.note].filter(Boolean).join(' · ')}</Text>
+            <Text style={[styles.readoutMeta, { color: theme.textMuted }]}>
+              {[formatTime(selected.time), selected.note].filter(Boolean).join(' · ')}
+            </Text>
           </>
         ) : (
           <Text style={[styles.hint, { color: theme.textMuted }]}>Chạm hoặc kéo trên biểu đồ để xem từng số đo.</Text>
@@ -112,14 +118,29 @@ function TimeSeriesChartBase({
       <View style={styles.plotRow}>
         <View style={{ width: AXIS_WIDTH, height: plotHeight }}>
           {ticks.map((tick) => (
-            <Text key={tick} style={[styles.tick, { top: Math.min(Math.max(y(tick) - TICK_HEIGHT / 2, 0), plotHeight - TICK_HEIGHT), color: theme.textMuted }]}>
+            <Text
+              key={tick}
+              style={[
+                styles.tick,
+                {
+                  top: Math.min(Math.max(y(tick) - TICK_HEIGHT / 2, 0), plotHeight - TICK_HEIGHT),
+                  color: theme.textMuted,
+                },
+              ]}
+            >
               {formatTick(tick)}
             </Text>
           ))}
         </View>
-        <View style={[styles.plot, { height: plotHeight }]} onLayout={(event) => setWidth(event.nativeEvent.layout.width)}>
+        <View
+          style={[styles.plot, { height: plotHeight }]}
+          onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
+        >
           {ticks.map((tick) => (
-            <View key={tick} style={[styles.gridLine, { top: y(tick), backgroundColor: tick === 0 ? theme.textSubtle : theme.border }]} />
+            <View
+              key={tick}
+              style={[styles.gridLine, { top: y(tick), backgroundColor: tick === 0 ? theme.textSubtle : theme.border }]}
+            />
           ))}
           {width > 0
             ? points.map((point, index) => {
@@ -146,14 +167,18 @@ function TimeSeriesChartBase({
                 )
               })
             : null}
-          {selected && width > 0 ? <View style={[styles.crosshair, { left: xs[selectedIndex]! - 0.5, backgroundColor: theme.textMuted }]} /> : null}
+          {selected && width > 0 ? (
+            <View style={[styles.crosshair, { left: xs[selectedIndex]! - 0.5, backgroundColor: theme.textMuted }]} />
+          ) : null}
           <View
             style={StyleSheet.absoluteFill}
             accessible
             accessibilityRole="adjustable"
             accessibilityLabel={label}
             accessibilityValue={{
-              text: selected ? `${readout}, lúc ${formatTime(selected.time)}` : `${points.length} số đo. Vuốt lên hoặc xuống để nghe từng số đo.`,
+              text: selected
+                ? `${readout}, lúc ${formatTime(selected.time)}`
+                : `${points.length} số đo. Vuốt lên hoặc xuống để nghe từng số đo.`,
             }}
             accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
             onAccessibilityAction={(event) => step(event.nativeEvent.actionName === 'increment' ? 1 : -1)}
@@ -166,8 +191,12 @@ function TimeSeriesChartBase({
       </View>
       <View style={[styles.xAxis, { marginLeft: AXIS_WIDTH }]}>
         <Text style={[styles.xLabel, { color: theme.textMuted }]}>{formatAxisTime(first)}</Text>
-        {points.length > 2 ? <Text style={[styles.xLabel, { color: theme.textMuted }]}>{formatAxisTime((first + last) / 2)}</Text> : null}
-        {points.length > 1 ? <Text style={[styles.xLabel, { color: theme.textMuted }]}>{formatAxisTime(last)}</Text> : null}
+        {points.length > 2 ? (
+          <Text style={[styles.xLabel, { color: theme.textMuted }]}>{formatAxisTime((first + last) / 2)}</Text>
+        ) : null}
+        {points.length > 1 ? (
+          <Text style={[styles.xLabel, { color: theme.textMuted }]}>{formatAxisTime(last)}</Text>
+        ) : null}
       </View>
       <Text style={[styles.xTitle, { color: theme.textMuted }]}>Thời điểm nhận</Text>
     </View>
@@ -191,6 +220,13 @@ const styles = StyleSheet.create({
   xAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
   xLabel: { fontSize: 11, lineHeight: 16, fontVariant: ['tabular-nums'] },
   xTitle: { fontSize: 12, lineHeight: 16, textAlign: 'center', marginTop: 2 },
-  empty: { borderWidth: 1, borderStyle: 'dashed', borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 16 },
+  empty: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
   emptyText: { fontSize: 14, lineHeight: 20, textAlign: 'center' },
 })

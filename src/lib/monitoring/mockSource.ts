@@ -33,16 +33,23 @@ function readingAt(device: MockDevice, tick: number, lastTick: number, config: D
     adcRaw: Math.round(2048 + value * 66),
     isTest: config.scenario === 'test-data',
     uptimeMs: Math.max(0, MOCK_UPTIME_AT_LAST_MS - (lastTick - tick) * MOCK_INTERVAL_MS),
-    receivedAtUtc: new Date(tick * MOCK_INTERVAL_MS + Math.floor(unit(`${device.deviceId}:jitter`, tick) * 400)).toISOString(),
+    receivedAtUtc: new Date(
+      tick * MOCK_INTERVAL_MS + Math.floor(unit(`${device.deviceId}:jitter`, tick) * 400),
+    ).toISOString(),
   }
 }
 
 /** Status is decided by the scenario, standing in for a backend rule that does not exist yet. */
-function timeline(deviceIndex: number, config: DemoConfig, now: number): { status: DeviceStatus; lastTick: number | null } {
+function timeline(
+  deviceIndex: number,
+  config: DemoConfig,
+  now: number,
+): { status: DeviceStatus; lastTick: number | null } {
   const nowTick = Math.floor(now / MOCK_INTERVAL_MS)
   if (config.scenario === 'unknown') return { status: 'unknown', lastTick: nowTick }
   if (deviceIndex > 0) return { status: 'live', lastTick: nowTick }
-  if (config.scenario === 'offline') return { status: 'offline', lastTick: nowTick - MOCK_OFFLINE_FOR_MS / MOCK_INTERVAL_MS }
+  if (config.scenario === 'offline')
+    return { status: 'offline', lastTick: nowTick - MOCK_OFFLINE_FOR_MS / MOCK_INTERVAL_MS }
   if (config.scenario === 'stale') return { status: 'stale', lastTick: nowTick - MOCK_STALE_FOR_MS / MOCK_INTERVAL_MS }
   if (config.scenario === 'no-readings') return { status: 'unknown', lastTick: null }
   return { status: 'live', lastTick: nowTick }
@@ -57,7 +64,10 @@ function locate(deviceId: string) {
 }
 
 /** The mock keeps its own scenario; `configure` changes what the next requests return. */
-export function createMockSource(initial: DemoConfig): { source: MonitoringSource; configure: (next: Partial<DemoConfig>) => void } {
+export function createMockSource(initial: DemoConfig): {
+  source: MonitoringSource
+  configure: (next: Partial<DemoConfig>) => void
+} {
   let current = initial
 
   async function respond<T>(build: (config: DemoConfig, now: number) => T): Promise<T> {
@@ -92,12 +102,15 @@ export function createMockSource(initial: DemoConfig): { source: MonitoringSourc
       }),
     listReadings: (deviceId, limit) =>
       respond((config, now) => {
-        if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new ApiError('limit phải là số nguyên từ 1 đến 100.', 400)
+        if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+          throw new ApiError('limit phải là số nguyên từ 1 đến 100.', 400)
         const found = locate(deviceId)
         if (!found || config.scenario === 'no-sites' || config.scenario === 'no-devices') return []
         const { lastTick } = timeline(found.index, config, now)
         if (lastTick == null) return []
-        return Array.from({ length: limit }, (_, offset) => readingAt(found.device, lastTick - offset, lastTick, config))
+        return Array.from({ length: limit }, (_, offset) =>
+          readingAt(found.device, lastTick - offset, lastTick, config),
+        )
       }),
   }
 

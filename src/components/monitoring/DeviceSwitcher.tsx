@@ -4,7 +4,15 @@ import type { MonitoringDevice } from '@/lib/monitoring/types'
 import { useAppTheme } from '@/theme/theme'
 
 /** Device chips for sites with more than one device; renders nothing otherwise. */
-export function DeviceSwitcher({ devices, selectedId, onSelect }: { devices: MonitoringDevice[]; selectedId: string; onSelect: (deviceId: string) => void }) {
+export function DeviceSwitcher({
+  devices,
+  selectedId,
+  onSelect,
+}: {
+  devices: MonitoringDevice[]
+  selectedId: string
+  onSelect: (deviceId: string) => void
+}) {
   const theme = useAppTheme()
   if (devices.length < 2) return null
   return (
@@ -33,8 +41,14 @@ export function DeviceSwitcher({ devices, selectedId, onSelect }: { devices: Mon
               },
             ]}
           >
-            <Ionicons name={active ? 'checkmark' : 'hardware-chip-outline'} size={16} color={active ? theme.brandText : theme.textMuted} />
-            <Text numberOfLines={1} style={[styles.label, { color: active ? theme.brandText : theme.text }]}>{device.name}</Text>
+            <Ionicons
+              name={active ? 'checkmark' : 'hardware-chip-outline'}
+              size={16}
+              color={active ? theme.brandText : theme.textMuted}
+            />
+            <Text numberOfLines={1} style={[styles.label, { color: active ? theme.brandText : theme.text }]}>
+              {device.name}
+            </Text>
           </Pressable>
         )
       })}
@@ -45,6 +59,15 @@ export function DeviceSwitcher({ devices, selectedId, onSelect }: { devices: Mon
 const styles = StyleSheet.create({
   scroller: { marginHorizontal: -16, flexGrow: 0 },
   row: { paddingHorizontal: 16, gap: 8 },
-  chip: { minHeight: 44, maxWidth: 260, borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  chip: {
+    minHeight: 44,
+    maxWidth: 260,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   label: { flexShrink: 1, fontSize: 14, lineHeight: 19, fontWeight: '700' },
 })

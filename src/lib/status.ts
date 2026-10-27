@@ -6,7 +6,10 @@ export function canBook(request: Pick<CustomerRequest, 'status' | 'appointment'>
   return !request.appointment && (request.status === 'PENDING' || request.status === 'ASSIGNED')
 }
 
-export function customerStatus(request: Pick<CustomerRequest, 'status' | 'appointment'>): { label: string; tone: Tone } {
+export function customerStatus(request: Pick<CustomerRequest, 'status' | 'appointment'>): {
+  label: string
+  tone: Tone
+} {
   if (request.status === 'COMPLETED') return { label: 'Đã khảo sát xong', tone: 'neutral' }
   if (request.status === 'CANCELLED') return { label: 'Đã huỷ', tone: 'neutral' }
   if (!request.appointment) {

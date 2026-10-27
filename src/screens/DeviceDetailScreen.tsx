@@ -16,7 +16,9 @@ export function DeviceDetailScreen() {
   const now = useNow()
   const sites = useMonitoringSites()
   const refreshFailed = Boolean(sites.data && sites.error)
-  const found = sites.data?.flatMap((site) => site.devices.map((device) => ({ site, device }))).find((item) => item.device.deviceId === id)
+  const found = sites.data
+    ?.flatMap((site) => site.devices.map((device) => ({ site, device })))
+    .find((item) => item.device.deviceId === id)
 
   let body: ReactNode
   if (sites.isPending) {
@@ -29,7 +31,14 @@ export function DeviceDetailScreen() {
         icon="hardware-chip-outline"
         title="Không tìm thấy thiết bị"
         description="Thiết bị có thể đã được gỡ khỏi công trình."
-        action={<Button label="Về danh sách thiết bị" variant="secondary" compact onPress={() => router.navigate('/customer/devices' as Href)} />}
+        action={
+          <Button
+            label="Về danh sách thiết bị"
+            variant="secondary"
+            compact
+            onPress={() => router.navigate('/customer/devices' as Href)}
+          />
+        }
       />
     )
   } else {
@@ -40,16 +49,30 @@ export function DeviceDetailScreen() {
         <PageHeader eyebrow={site.name} title={device.name} description={`Mã thiết bị ${device.deviceId}`} />
         <DemoBanner />
         {refreshFailed && sites.error ? (
-          <RefreshNotice error={sites.error} updatedAt={sites.dataUpdatedAt} now={now} onRetry={() => void sites.refetch()} />
+          <RefreshNotice
+            error={sites.error}
+            updatedAt={sites.dataUpdatedAt}
+            now={now}
+            onRetry={() => void sites.refetch()}
+          />
         ) : null}
         <DeviceMetricCard device={device} refreshFailed={refreshFailed} now={now} />
         {reading ? (
           <>
             <Panel>
               <SectionTitle detail="Các trường thiết bị gửi trong bản ghi gần nhất">Bản ghi gần nhất</SectionTitle>
-              <KeyValue label="Thời điểm máy chủ nhận" value={`${formatFullTimestamp(reading.receivedAtUtc)} · ${formatRelative(reading.receivedAtUtc, now)}`} />
-              <KeyValue label="Giá trị cảm biến thô (ADC)" value={reading.adcRaw == null ? 'Thiết bị không gửi' : formatAdc(reading.adcRaw)} />
-              <KeyValue label="Thời gian thiết bị chạy liên tục" value={reading.uptimeMs == null ? 'Thiết bị không gửi' : formatUptime(reading.uptimeMs)} />
+              <KeyValue
+                label="Thời điểm máy chủ nhận"
+                value={`${formatFullTimestamp(reading.receivedAtUtc)} · ${formatRelative(reading.receivedAtUtc, now)}`}
+              />
+              <KeyValue
+                label="Giá trị cảm biến thô (ADC)"
+                value={reading.adcRaw == null ? 'Thiết bị không gửi' : formatAdc(reading.adcRaw)}
+              />
+              <KeyValue
+                label="Thời gian thiết bị chạy liên tục"
+                value={reading.uptimeMs == null ? 'Thiết bị không gửi' : formatUptime(reading.uptimeMs)}
+              />
               <KeyValue label="Loại dữ liệu" value={reading.isTest ? 'Dữ liệu thử nghiệm' : 'Số đo thật'} />
             </Panel>
             <Button

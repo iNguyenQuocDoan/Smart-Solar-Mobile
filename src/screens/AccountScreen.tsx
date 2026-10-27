@@ -18,7 +18,9 @@ export function AccountScreen() {
             <Text style={[styles.avatarText, { color: theme.brandText }]}>{initial}</Text>
           </View>
           <View style={styles.identityCopy}>
-            <Text style={[styles.email, { color: theme.text }]} numberOfLines={2}>{session?.email || 'Tài khoản Smart Solar'}</Text>
+            <Text style={[styles.email, { color: theme.text }]} numberOfLines={2}>
+              {session?.email || 'Tài khoản Smart Solar'}
+            </Text>
             <Text style={[styles.role, { color: theme.textMuted }]}>{session ? roleLabel[session.role] : '—'}</Text>
           </View>
         </View>
@@ -26,7 +28,9 @@ export function AccountScreen() {
         <KeyValue label="Giao diện" value="Theo cài đặt hệ thống" />
         <View style={styles.secureRow}>
           <Ionicons name="shield-checkmark-outline" size={20} color={theme.success} />
-          <Text style={[styles.secureText, { color: theme.textMuted }]}>Refresh token được lưu trong vùng bảo mật của thiết bị.</Text>
+          <Text style={[styles.secureText, { color: theme.textMuted }]}>
+            Refresh token được lưu trong vùng bảo mật của thiết bị.
+          </Text>
         </View>
       </Panel>
       <Button label="Đăng xuất" icon="log-out-outline" variant="danger" onPress={() => void logout()} />

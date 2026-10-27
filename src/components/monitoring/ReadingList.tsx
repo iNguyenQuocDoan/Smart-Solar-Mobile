@@ -18,7 +18,11 @@ export function ReadingList({ readings }: { readings: DeviceReading[] }) {
           key={reading.id}
           accessible
           accessibilityLabel={`${formatClock(reading.receivedAtUtc)} ngày ${formatDayMonth(reading.receivedAtUtc)}: ${formatCurrent(reading.currentA)}${reading.isTest ? ', dữ liệu thử' : ''}`}
-          style={[styles.row, { backgroundColor: theme.surface, borderBottomColor: theme.border }, index === readings.length - 1 && styles.last]}
+          style={[
+            styles.row,
+            { backgroundColor: theme.surface, borderBottomColor: theme.border },
+            index === readings.length - 1 && styles.last,
+          ]}
         >
           <View style={styles.when}>
             <Text style={[styles.time, { color: theme.text }]}>{formatClock(reading.receivedAtUtc)}</Text>
@@ -48,9 +52,24 @@ export function ReadingList({ readings }: { readings: DeviceReading[] }) {
 
 const styles = StyleSheet.create({
   list: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
-  head: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth },
+  head: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   headText: { fontSize: 12, lineHeight: 16, fontWeight: '700' },
-  row: { minHeight: 56, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: {
+    minHeight: 56,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   last: { borderBottomWidth: 0 },
   when: { gap: 1 },
   what: { alignItems: 'flex-end', gap: 2, flexShrink: 1 },

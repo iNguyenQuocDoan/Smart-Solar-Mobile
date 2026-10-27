@@ -4,7 +4,15 @@ import { formatAmpere, formatAxisNumber, formatClock, timeAxisFormatter } from '
 import type { DeviceReading } from '@/lib/monitoring/types'
 
 /** Current (A) over time from readings given newest first, as the IoT API returns them. */
-function CurrentChartBase({ readings, plotHeight, dimmed }: { readings: DeviceReading[]; plotHeight?: number; dimmed?: boolean }) {
+function CurrentChartBase({
+  readings,
+  plotHeight,
+  dimmed,
+}: {
+  readings: DeviceReading[]
+  plotHeight?: number
+  dimmed?: boolean
+}) {
   const points = useMemo(
     () =>
       [...readings].reverse().map((reading) => ({
@@ -15,7 +23,10 @@ function CurrentChartBase({ readings, plotHeight, dimmed }: { readings: DeviceRe
       })),
     [readings],
   )
-  const formatAxisTime = useMemo(() => timeAxisFormatter(points[0]?.time ?? 0, points[points.length - 1]?.time ?? 0), [points])
+  const formatAxisTime = useMemo(
+    () => timeAxisFormatter(points[0]?.time ?? 0, points[points.length - 1]?.time ?? 0),
+    [points],
+  )
   return (
     <TimeSeriesChart
       points={points}

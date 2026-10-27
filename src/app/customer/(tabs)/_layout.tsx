@@ -25,7 +25,13 @@ export default function CustomerTabs() {
         headerShown: false,
         tabBarActiveTintColor: theme.brandText,
         tabBarInactiveTintColor: theme.textMuted,
-        tabBarStyle: { backgroundColor: theme.surface, borderTopColor: theme.border, height: 64 + insets.bottom, paddingTop: 6, paddingBottom: 7 + insets.bottom },
+        tabBarStyle: {
+          backgroundColor: theme.surface,
+          borderTopColor: theme.border,
+          height: 64 + insets.bottom,
+          paddingTop: 6,
+          paddingBottom: 7 + insets.bottom,
+        },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         sceneStyle: { backgroundColor: theme.canvas },
       }}

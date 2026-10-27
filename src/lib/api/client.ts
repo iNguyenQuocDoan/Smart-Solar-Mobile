@@ -86,7 +86,11 @@ function unwrap<T>(status: number, body: unknown): T {
     const envelope = body as ApiEnvelope<T>
     if (envelope.isSuccess === false) {
       const code = envelope.error?.code ?? null
-      throw new ApiError(messages[code ?? ''] ?? envelope.error?.message ?? statusMessages[status] ?? 'Đã xảy ra lỗi.', status, code)
+      throw new ApiError(
+        messages[code ?? ''] ?? envelope.error?.message ?? statusMessages[status] ?? 'Đã xảy ra lỗi.',
+        status,
+        code,
+      )
     }
     return envelope.data as T
   }
@@ -158,11 +162,19 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
     if (responseBody && typeof responseBody === 'object' && 'isSuccess' in responseBody) {
       return unwrap<T>(response.status, responseBody)
     }
-    const raw = responseBody as { code?: unknown; message?: unknown; error?: { code?: unknown; message?: unknown } } | null
+    const raw = responseBody as {
+      code?: unknown
+      message?: unknown
+      error?: { code?: unknown; message?: unknown }
+    } | null
     const codeValue = raw?.error?.code ?? raw?.code
     const messageValue = raw?.error?.message ?? raw?.message
     const code = typeof codeValue === 'string' ? codeValue : null
-    const message = messages[code ?? ''] ?? (typeof messageValue === 'string' ? messageValue : null) ?? statusMessages[response.status] ?? 'Đã xảy ra lỗi. Vui lòng thử lại.'
+    const message =
+      messages[code ?? ''] ??
+      (typeof messageValue === 'string' ? messageValue : null) ??
+      statusMessages[response.status] ??
+      'Đã xảy ra lỗi. Vui lòng thử lại.'
     throw new ApiError(message, response.status, code)
   }
   return unwrap<T>(response.status, responseBody)

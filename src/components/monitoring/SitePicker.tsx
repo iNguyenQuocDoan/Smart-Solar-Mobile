@@ -28,7 +28,9 @@ export function SitePicker({
     variant === 'title' ? (
       <View style={styles.titleBlock}>
         <View style={styles.titleRow}>
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>{site.name}</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+            {site.name}
+          </Text>
           {multiple ? (
             <View style={[styles.switch, { backgroundColor: theme.surfaceMuted }]}>
               <Text style={[styles.switchText, { color: theme.text }]}>Đổi</Text>
@@ -43,7 +45,9 @@ export function SitePicker({
         <Ionicons name="business-outline" size={20} color={theme.textMuted} />
         <View style={styles.fieldCopy}>
           <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>Công trình</Text>
-          <Text numberOfLines={2} style={[styles.fieldValue, { color: theme.text }]}>{site.name}</Text>
+          <Text numberOfLines={2} style={[styles.fieldValue, { color: theme.text }]}>
+            {site.name}
+          </Text>
         </View>
         {multiple ? (
           <>
@@ -91,10 +95,26 @@ const styles = StyleSheet.create({
   titleBlock: { gap: 4 },
   titleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
   title: { flexShrink: 1, fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: -0.5 },
-  switch: { minHeight: 32, borderRadius: 999, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  switch: {
+    minHeight: 32,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   switchText: { fontSize: 14, lineHeight: 19, fontWeight: '700' },
   address: { fontSize: 14, lineHeight: 20 },
-  field: { minHeight: 56, borderWidth: 1, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  field: {
+    minHeight: 56,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   fieldCopy: { flex: 1, gap: 1 },
   fieldLabel: { fontSize: 12, lineHeight: 16 },
   fieldValue: { fontSize: 15, lineHeight: 21, fontWeight: '700' },

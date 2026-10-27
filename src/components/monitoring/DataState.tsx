@@ -5,10 +5,21 @@ import { isNetworkError } from '@/lib/api/client'
 import { formatReceivedAt } from '@/lib/monitoring/format'
 import { useAppTheme } from '@/theme/theme'
 
-export function LoadingBlock({ label = 'Đang tải dữ liệu giám sát…', compact = false }: { label?: string; compact?: boolean }) {
+export function LoadingBlock({
+  label = 'Đang tải dữ liệu giám sát…',
+  compact = false,
+}: {
+  label?: string
+  compact?: boolean
+}) {
   const theme = useAppTheme()
   return (
-    <View style={[styles.loader, compact && styles.loaderCompact]} accessible accessibilityRole="progressbar" accessibilityLabel={label}>
+    <View
+      style={[styles.loader, compact && styles.loaderCompact]}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={label}
+    >
       <ActivityIndicator size="large" color={theme.brand} />
       <Text style={[styles.loaderText, { color: theme.textMuted }]}>{label}</Text>
     </View>
@@ -29,14 +40,26 @@ export function ErrorBlock({ error, onRetry }: { error: Error; onRetry: () => vo
 }
 
 /** Shown above data that is still on screen after a refresh failed. */
-export function RefreshNotice({ error, updatedAt, now, onRetry }: { error: Error; updatedAt: number; now: number; onRetry: () => void }) {
+export function RefreshNotice({
+  error,
+  updatedAt,
+  now,
+  onRetry,
+}: {
+  error: Error
+  updatedAt: number
+  now: number
+  onRetry: () => void
+}) {
   const theme = useAppTheme()
   const network = isNetworkError(error)
   return (
     <View accessibilityRole="alert" style={[styles.notice, { backgroundColor: theme.warningSoft }]}>
       <Ionicons name={network ? 'cloud-offline-outline' : 'alert-circle-outline'} size={22} color={theme.warning} />
       <View style={styles.noticeCopy}>
-        <Text style={[styles.noticeTitle, { color: theme.text }]}>{network ? 'Mất kết nối mạng' : 'Không làm mới được dữ liệu'}</Text>
+        <Text style={[styles.noticeTitle, { color: theme.text }]}>
+          {network ? 'Mất kết nối mạng' : 'Không làm mới được dữ liệu'}
+        </Text>
         <Text style={[styles.noticeBody, { color: theme.text }]}>
           Đang hiển thị số liệu đã tải lúc {formatReceivedAt(updatedAt, now)}, không phải dữ liệu trực tiếp.
         </Text>

@@ -15,7 +15,12 @@ export const keys = {
 
 /** Danh mục phường, xã ít đổi nên tải một lần mỗi lần mở app */
 export function useHcmCommunes() {
-  return useQuery({ queryKey: keys.communes, queryFn: assessmentService.listCommunes, staleTime: Infinity, gcTime: Infinity })
+  return useQuery({
+    queryKey: keys.communes,
+    queryFn: assessmentService.listCommunes,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  })
 }
 
 export function useCustomerRequests() {
@@ -23,11 +28,19 @@ export function useCustomerRequests() {
 }
 
 export function useCustomerRequest(id: string) {
-  return useQuery({ queryKey: keys.customerRequest(id), queryFn: () => customerService.getRequest(id), enabled: Boolean(id) })
+  return useQuery({
+    queryKey: keys.customerRequest(id),
+    queryFn: () => customerService.getRequest(id),
+    enabled: Boolean(id),
+  })
 }
 
 export function useSurveySlots(siteId: string, date: string, enabled: boolean) {
-  return useQuery({ queryKey: keys.slots(siteId, date), queryFn: () => customerService.getSlots(siteId, date), enabled })
+  return useQuery({
+    queryKey: keys.slots(siteId, date),
+    queryFn: () => customerService.getSlots(siteId, date),
+    enabled,
+  })
 }
 
 export function useBookingMutation(id: string, mode: 'book' | 'reschedule') {
@@ -62,7 +75,11 @@ export function useTechJobs() {
 }
 
 export function useTechJob(id: string) {
-  return useQuery({ queryKey: keys.techJob(id), queryFn: () => technicianService.getAppointment(id), enabled: Boolean(id) })
+  return useQuery({
+    queryKey: keys.techJob(id),
+    queryFn: () => technicianService.getAppointment(id),
+    enabled: Boolean(id),
+  })
 }
 
 export function useAcknowledgeJob(id: string) {

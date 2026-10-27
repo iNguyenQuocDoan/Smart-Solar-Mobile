@@ -54,13 +54,19 @@ export const technicianService = {
 
 export const productService = {
   list: (search = '') =>
-    apiGet<ProductPage>(`/products?Page=1&PageSize=50&SortBy=name&SortDirection=asc${search ? `&Search=${encode(search)}` : ''}`),
+    apiGet<ProductPage>(
+      `/products?Page=1&PageSize=50&SortBy=name&SortDirection=asc${search ? `&Search=${encode(search)}` : ''}`,
+    ),
   get: (id: string) => apiGet<Product>(`/products/${encode(id)}`),
 }
 
 export const assessmentService = {
-  createProfile: (body: { customerType: 1 | 2; companyName: string | null; taxCode: string | null; note: string | null }) =>
-    apiPost<{ customerId: string }>('/customers/me', body),
+  createProfile: (body: {
+    customerType: 1 | 2
+    companyName: string | null
+    taxCode: string | null
+    note: string | null
+  }) => apiPost<{ customerId: string }>('/customers/me', body),
   createSite: (body: {
     name: string
     province: string
@@ -103,7 +109,13 @@ export const assessmentService = {
   ) => apiPut<{ revision: number; geometryVersion: number }>(`/pre-surveys/${encode(preSurveyId)}/surface`, body),
   updateDeclared: (
     preSurveyId: string,
-    body: { totalAreaM2: number; usableAreaM2: number; tiltDegree: number; azimuthDegree: number; hasObstruction: boolean },
+    body: {
+      totalAreaM2: number
+      usableAreaM2: number
+      tiltDegree: number
+      azimuthDegree: number
+      hasObstruction: boolean
+    },
   ) => apiPut<unknown>(`/pre-surveys/${encode(preSurveyId)}`, body),
   submit: (preSurveyId: string) => apiPost<{ surveyRequestId: string }>(`/pre-surveys/${encode(preSurveyId)}/submit`),
 }

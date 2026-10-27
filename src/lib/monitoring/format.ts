@@ -3,8 +3,19 @@ import { VN_TIME_ZONE, dateOf, formatShortDate } from '@/lib/format'
 const ampere = new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 const axisNumber = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 })
 const integer = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 })
-const clock = new Intl.DateTimeFormat('vi-VN', { timeZone: VN_TIME_ZONE, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
-const clockShort = new Intl.DateTimeFormat('vi-VN', { timeZone: VN_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const clock = new Intl.DateTimeFormat('vi-VN', {
+  timeZone: VN_TIME_ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
+const clockShort = new Intl.DateTimeFormat('vi-VN', {
+  timeZone: VN_TIME_ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
 
 function vnDate(time: string | number) {
   return dateOf(new Date(time).toISOString())
@@ -41,7 +52,9 @@ function sameVnDay(time: string | number, now: number) {
 
 /** "14:32:05" today, "14:32 · 18/10" on another day. */
 export function formatReceivedAt(time: string | number, now: number) {
-  return sameVnDay(time, now) ? clock.format(new Date(time)) : `${clockShort.format(new Date(time))} · ${formatDayMonth(time)}`
+  return sameVnDay(time, now)
+    ? clock.format(new Date(time))
+    : `${clockShort.format(new Date(time))} · ${formatDayMonth(time)}`
 }
 
 /** "14:32:05, 18/10/2026" in Vietnam time. */

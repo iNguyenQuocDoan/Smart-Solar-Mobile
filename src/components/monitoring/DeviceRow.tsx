@@ -38,7 +38,9 @@ export function DeviceRow({
         <Ionicons name="hardware-chip-outline" size={22} color={theme.textMuted} />
       </View>
       <View style={styles.copy}>
-        <Text numberOfLines={2} style={[styles.name, { color: theme.text }]}>{device.name}</Text>
+        <Text numberOfLines={2} style={[styles.name, { color: theme.text }]}>
+          {device.name}
+        </Text>
         <Text style={[styles.code, { color: theme.textMuted }]}>Mã {device.deviceId}</Text>
         <View style={styles.pills}>
           <StatusPill label={status.label} tone={status.tone} icon={status.icon} />
@@ -63,9 +65,22 @@ export function DeviceRow({
 }
 
 const styles = StyleSheet.create({
-  row: { padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: {
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   last: { borderBottomWidth: 0 },
-  iconBox: { width: 40, height: 40, borderRadius: 6, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+  },
   copy: { flex: 1, gap: 5 },
   name: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   code: { fontSize: 12, lineHeight: 17 },

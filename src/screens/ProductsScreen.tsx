@@ -36,14 +36,23 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
           style={[styles.searchInput, { color: theme.text }]}
         />
         {search ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Xoá từ khoá" onPress={() => setSearch('')} hitSlop={8}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Xoá từ khoá"
+            onPress={() => setSearch('')}
+            hitSlop={8}
+          >
             <Ionicons name="close-circle" size={21} color={theme.textMuted} />
           </Pressable>
         ) : null}
       </View>
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {!query.isPending && !query.error && items.length === 0 ? (
-        <StateView icon="search-outline" title="Không tìm thấy sản phẩm" description="Thử tên hãng, model hoặc từ khoá khác." />
+        <StateView
+          icon="search-outline"
+          title="Không tìm thấy sản phẩm"
+          description="Thử tên hãng, model hoặc từ khoá khác."
+        />
       ) : (
         <View style={[styles.list, { borderColor: theme.border }]}>
           {items.map((product, index) => (
@@ -66,10 +75,16 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
                 )}
               </View>
               <View style={styles.copy}>
-                <Text style={[styles.name, { color: theme.text }]} numberOfLines={2}>{product.name || 'Sản phẩm chưa đặt tên'}</Text>
-                <Text style={[styles.meta, { color: theme.textMuted }]} numberOfLines={1}>{[product.brand, product.model].filter(Boolean).join(' · ') || product.sku || '—'}</Text>
+                <Text style={[styles.name, { color: theme.text }]} numberOfLines={2}>
+                  {product.name || 'Sản phẩm chưa đặt tên'}
+                </Text>
+                <Text style={[styles.meta, { color: theme.textMuted }]} numberOfLines={1}>
+                  {[product.brand, product.model].filter(Boolean).join(' · ') || product.sku || '—'}
+                </Text>
                 <View style={styles.specs}>
-                  {product.ratedPowerW != null ? <Text style={[styles.spec, { color: theme.brandText }]}>{product.ratedPowerW} W</Text> : null}
+                  {product.ratedPowerW != null ? (
+                    <Text style={[styles.spec, { color: theme.brandText }]}>{product.ratedPowerW} W</Text>
+                  ) : null}
                   <Text style={[styles.price, { color: theme.text }]}>{formatMoney(product.unitPrice)}</Text>
                 </View>
               </View>
@@ -83,12 +98,34 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
 }
 
 const styles = StyleSheet.create({
-  search: { minHeight: 48, borderWidth: 1, borderRadius: 6, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  search: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+  },
   searchInput: { flex: 1, minHeight: 46, fontSize: 15, lineHeight: 21, paddingVertical: 0 },
   list: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
-  row: { minHeight: 96, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: {
+    minHeight: 96,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   lastRow: { borderBottomWidth: 0 },
-  imageBox: { width: 68, height: 68, borderRadius: 4, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  imageBox: {
+    width: 68,
+    height: 68,
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
   image: { width: '100%', height: '100%' },
   copy: { flex: 1, gap: 3 },
   name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },

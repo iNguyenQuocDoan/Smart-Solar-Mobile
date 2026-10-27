@@ -28,14 +28,21 @@ export function LoginScreen() {
       await login(email, password)
       router.replace('/')
     } catch (reason) {
-      setError(reason instanceof ApiError || reason instanceof Error ? reason.message : 'Không thể đăng nhập. Vui lòng thử lại.')
+      setError(
+        reason instanceof ApiError || reason instanceof Error
+          ? reason.message
+          : 'Không thể đăng nhập. Vui lòng thử lại.',
+      )
     } finally {
       setPending(false)
     }
   }
 
   return (
-    <KeyboardAvoidingView style={[styles.flex, { backgroundColor: theme.canvas }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView
+      style={[styles.flex, { backgroundColor: theme.canvas }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <Screen contentStyle={styles.screen}>
         <View style={styles.brand}>
           <View style={[styles.mark, { backgroundColor: theme.brand }]}>
@@ -48,8 +55,12 @@ export function LoginScreen() {
         </View>
 
         <View style={styles.intro}>
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>Công việc rõ ràng, ngay trên điện thoại.</Text>
-          <Text style={[styles.lead, { color: theme.textMuted }]}>Dành cho khách hàng theo dõi khảo sát và kỹ thuật viên làm việc tại công trình.</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+            Công việc rõ ràng, ngay trên điện thoại.
+          </Text>
+          <Text style={[styles.lead, { color: theme.textMuted }]}>
+            Dành cho khách hàng theo dõi khảo sát và kỹ thuật viên làm việc tại công trình.
+          </Text>
         </View>
 
         <View style={[styles.form, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -96,7 +107,9 @@ export function LoginScreen() {
             </Pressable>
           </View>
           <Button label="Đăng nhập" onPress={() => void submit()} loading={pending} />
-          <Text style={[styles.secureNote, { color: theme.textMuted }]}>Phiên đăng nhập được lưu an toàn trên thiết bị.</Text>
+          <Text style={[styles.secureNote, { color: theme.textMuted }]}>
+            Phiên đăng nhập được lưu an toàn trên thiết bị.
+          </Text>
         </View>
       </Screen>
     </KeyboardAvoidingView>
@@ -119,6 +132,14 @@ const styles = StyleSheet.create({
   formNote: { fontSize: 14, lineHeight: 20 },
   alert: { borderRadius: 6, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   alertText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  passwordToggle: { position: 'absolute', right: 3, bottom: 2, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  passwordToggle: {
+    position: 'absolute',
+    right: 3,
+    bottom: 2,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   secureNote: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
 })

@@ -28,10 +28,29 @@ export function CustomerRequestsScreen() {
   const completed = items.filter((item) => item.status === 'COMPLETED').length
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
-      <PageHeader eyebrow="Khảo sát" title="Yêu cầu của bạn" description={toBook ? `${toBook} yêu cầu đang chờ bạn chọn giờ khảo sát.` : 'Theo dõi lịch hẹn và người được phân công.'} action={<Button label="Đánh giá mới" icon="add" variant="secondary" compact onPress={() => router.push('./assessment')} />} />
+      <PageHeader
+        eyebrow="Khảo sát"
+        title="Yêu cầu của bạn"
+        description={
+          toBook ? `${toBook} yêu cầu đang chờ bạn chọn giờ khảo sát.` : 'Theo dõi lịch hẹn và người được phân công.'
+        }
+        action={
+          <Button
+            label="Đánh giá mới"
+            icon="add"
+            variant="secondary"
+            compact
+            onPress={() => router.push('./assessment')}
+          />
+        }
+      />
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {!query.isPending && !query.error && items.length === 0 ? (
-        <StateView title="Chưa có yêu cầu khảo sát" description="Bắt đầu đánh giá sơ bộ để gửi thông tin công trình." action={<Button label="Bắt đầu đánh giá" onPress={() => router.push('./assessment')} compact />} />
+        <StateView
+          title="Chưa có yêu cầu khảo sát"
+          description="Bắt đầu đánh giá sơ bộ để gửi thông tin công trình."
+          action={<Button label="Bắt đầu đánh giá" onPress={() => router.push('./assessment')} compact />}
+        />
       ) : null}
       {items.length > 0 ? (
         <>
@@ -43,7 +62,9 @@ export function CustomerRequestsScreen() {
             <Metric label="Đã khảo sát" value={String(completed)} />
           </Panel>
           <View style={[styles.list, { borderColor: theme.border }]}>
-            {items.map((request, index) => <CustomerRequestRow key={request.surveyRequestId} request={request} last={index === items.length - 1} />)}
+            {items.map((request, index) => (
+              <CustomerRequestRow key={request.surveyRequestId} request={request} last={index === items.length - 1} />
+            ))}
           </View>
         </>
       ) : null}

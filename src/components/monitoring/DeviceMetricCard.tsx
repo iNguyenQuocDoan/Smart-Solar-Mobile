@@ -5,7 +5,15 @@ import { deviceStatusView } from '@/lib/monitoring/status'
 import type { MonitoringDevice } from '@/lib/monitoring/types'
 
 /** Headline current of one device, with its status, receive time and anything the reader must know. */
-export function DeviceMetricCard({ device, refreshFailed, now }: { device: MonitoringDevice; refreshFailed: boolean; now: number }) {
+export function DeviceMetricCard({
+  device,
+  refreshFailed,
+  now,
+}: {
+  device: MonitoringDevice
+  refreshFailed: boolean
+  now: number
+}) {
   const status = deviceStatusView(device, refreshFailed)
   const reading = device.lastReading
   const missingCurrent =

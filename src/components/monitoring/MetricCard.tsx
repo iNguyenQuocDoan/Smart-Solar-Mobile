@@ -73,7 +73,14 @@ export function MetricStrip({ items, caption }: { items: { label: string; value:
           <Fragment key={item.label}>
             {index > 0 ? <View style={[styles.rule, { backgroundColor: theme.border }]} /> : null}
             <View style={styles.cell} accessible accessibilityLabel={`${item.label}: ${item.value}`}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={[styles.cellValue, { color: theme.text }]}>{item.value}</Text>
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                style={[styles.cellValue, { color: theme.text }]}
+              >
+                {item.value}
+              </Text>
               <Text style={[styles.cellLabel, { color: theme.textMuted }]}>{item.label}</Text>
             </View>
           </Fragment>

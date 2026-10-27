@@ -19,7 +19,13 @@ import type { Tone } from '@/lib/status'
 
 export type IconName = ComponentProps<typeof Ionicons>['name']
 
-export function Screen({ children, refreshing, onRefresh, contentStyle, ...props }: PropsWithChildren<ScrollViewProps> & {
+export function Screen({
+  children,
+  refreshing,
+  onRefresh,
+  contentStyle,
+  ...props
+}: PropsWithChildren<ScrollViewProps> & {
   refreshing?: boolean
   onRefresh?: () => void
   contentStyle?: ViewStyle
@@ -32,7 +38,11 @@ export function Screen({ children, refreshing, onRefresh, contentStyle, ...props
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.screen, contentStyle]}
-        refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={theme.brand} /> : undefined}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={theme.brand} />
+          ) : undefined
+        }
       >
         {children}
       </ScrollView>
@@ -40,13 +50,25 @@ export function Screen({ children, refreshing, onRefresh, contentStyle, ...props
   )
 }
 
-export function PageHeader({ eyebrow, title, description, action }: { eyebrow?: string; title: string; description?: string; action?: ReactNode }) {
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow?: string
+  title: string
+  description?: string
+  action?: ReactNode
+}) {
   const theme = useAppTheme()
   return (
     <View style={styles.pageHeader}>
       <View style={styles.pageHeaderCopy}>
         {eyebrow ? <Text style={[styles.eyebrow, { color: theme.brandText }]}>{eyebrow}</Text> : null}
-        <Text accessibilityRole="header" style={[styles.pageTitle, { color: theme.text }]}>{title}</Text>
+        <Text accessibilityRole="header" style={[styles.pageTitle, { color: theme.text }]}>
+          {title}
+        </Text>
         {description ? <Text style={[styles.description, { color: theme.textMuted }]}>{description}</Text> : null}
       </View>
       {action}
@@ -56,7 +78,9 @@ export function PageHeader({ eyebrow, title, description, action }: { eyebrow?: 
 
 export function Panel({ children, style }: PropsWithChildren<{ style?: ViewStyle }>) {
   const theme = useAppTheme()
-  return <View style={[styles.panel, { backgroundColor: theme.surface, borderColor: theme.border }, style]}>{children}</View>
+  return (
+    <View style={[styles.panel, { backgroundColor: theme.surface, borderColor: theme.border }, style]}>{children}</View>
+  )
 }
 
 export function SectionTitle({ children, detail }: PropsWithChildren<{ detail?: string }>) {
@@ -101,23 +125,52 @@ export function Button({
         (disabled || loading) && styles.disabled,
       ]}
     >
-      {loading ? <ActivityIndicator color={palette.text} size="small" /> : icon ? <Ionicons name={icon} size={19} color={palette.text} /> : null}
+      {loading ? (
+        <ActivityIndicator color={palette.text} size="small" />
+      ) : icon ? (
+        <Ionicons name={icon} size={19} color={palette.text} />
+      ) : null}
       <Text style={[styles.buttonLabel, { color: palette.text }]}>{loading ? 'Đang xử lý…' : label}</Text>
     </Pressable>
   )
 }
 
 function buttonPalette(theme: AppTheme, variant: 'primary' | 'secondary' | 'danger' | 'quiet') {
-  if (variant === 'primary') return { background: theme.brand, pressed: theme.brandPressed, border: theme.brand, text: theme.onBrand }
-  if (variant === 'danger') return { background: theme.dangerSoft, pressed: theme.surfacePressed, border: theme.danger, text: theme.danger }
-  if (variant === 'quiet') return { background: 'transparent', pressed: theme.surfacePressed, border: 'transparent', text: theme.brandText }
+  if (variant === 'primary')
+    return { background: theme.brand, pressed: theme.brandPressed, border: theme.brand, text: theme.onBrand }
+  if (variant === 'danger')
+    return { background: theme.dangerSoft, pressed: theme.surfacePressed, border: theme.danger, text: theme.danger }
+  if (variant === 'quiet')
+    return { background: 'transparent', pressed: theme.surfacePressed, border: 'transparent', text: theme.brandText }
   return { background: theme.surface, pressed: theme.surfacePressed, border: theme.border, text: theme.text }
 }
 
-export function IconButton({ label, icon, onPress, disabled = false }: { label: string; icon: IconName; onPress: () => void; disabled?: boolean }) {
+export function IconButton({
+  label,
+  icon,
+  onPress,
+  disabled = false,
+}: {
+  label: string
+  icon: IconName
+  onPress: () => void
+  disabled?: boolean
+}) {
   const theme = useAppTheme()
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} hitSlop={8} style={({ pressed }) => [styles.iconButton, pressed && { backgroundColor: theme.surfacePressed }, disabled && styles.disabled]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      onPress={onPress}
+      hitSlop={8}
+      style={({ pressed }) => [
+        styles.iconButton,
+        pressed && { backgroundColor: theme.surfacePressed },
+        disabled && styles.disabled,
+      ]}
+    >
       <Ionicons name={icon} size={22} color={disabled ? theme.textSubtle : theme.text} />
     </Pressable>
   )
@@ -152,14 +205,28 @@ export function Field({ label, error, ...props }: TextInputProps & { label: stri
         accessibilityLabel={label}
         placeholderTextColor={theme.textSubtle}
         selectionColor={theme.brandText}
-        style={[styles.input, { color: theme.text, backgroundColor: theme.surface, borderColor: error ? theme.danger : theme.border }, props.multiline && styles.textarea]}
+        style={[
+          styles.input,
+          { color: theme.text, backgroundColor: theme.surface, borderColor: error ? theme.danger : theme.border },
+          props.multiline && styles.textarea,
+        ]}
       />
       {error ? <Text style={[styles.fieldError, { color: theme.danger }]}>{error}</Text> : null}
     </View>
   )
 }
 
-export function StateView({ icon = 'file-tray-outline', title, description, action }: { icon?: IconName; title: string; description?: string; action?: ReactNode }) {
+export function StateView({
+  icon = 'file-tray-outline',
+  title,
+  description,
+  action,
+}: {
+  icon?: IconName
+  title: string
+  description?: string
+  action?: ReactNode
+}) {
   const theme = useAppTheme()
   return (
     <View style={styles.state}>
@@ -171,10 +238,31 @@ export function StateView({ icon = 'file-tray-outline', title, description, acti
   )
 }
 
-export function QueryState({ loading, error, onRetry }: { loading: boolean; error: Error | null; onRetry: () => void }) {
+export function QueryState({
+  loading,
+  error,
+  onRetry,
+}: {
+  loading: boolean
+  error: Error | null
+  onRetry: () => void
+}) {
   const theme = useAppTheme()
-  if (loading) return <View style={styles.loader}><ActivityIndicator size="large" color={theme.brand} /></View>
-  if (error) return <StateView icon="cloud-offline-outline" title="Không tải được dữ liệu" description={error.message} action={<Button label="Thử lại" onPress={onRetry} variant="secondary" compact />} />
+  if (loading)
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color={theme.brand} />
+      </View>
+    )
+  if (error)
+    return (
+      <StateView
+        icon="cloud-offline-outline"
+        title="Không tải được dữ liệu"
+        description={error.message}
+        action={<Button label="Thử lại" onPress={onRetry} variant="secondary" compact />}
+      />
+    )
   return null
 }
 
@@ -225,12 +313,29 @@ const styles = StyleSheet.create({
   sectionHeading: { gap: 3 },
   sectionTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
   meta: { fontSize: 13, lineHeight: 18 },
-  button: { minHeight: 48, borderWidth: 1, borderRadius: 6, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  button: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   buttonCompact: { minHeight: 44, alignSelf: 'flex-start', paddingHorizontal: 14 },
   buttonLabel: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   disabled: { opacity: 0.55 },
   iconButton: { width: 44, height: 44, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  badge: { minHeight: 28, borderRadius: 999, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6 },
+  badge: {
+    minHeight: 28,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+  },
   badgeDot: { width: 6, height: 6, borderRadius: 3 },
   badgeText: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   field: { gap: 7 },

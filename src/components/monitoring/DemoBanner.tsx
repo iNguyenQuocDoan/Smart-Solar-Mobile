@@ -30,7 +30,10 @@ export function DemoBanner() {
             accessibilityRole="button"
             accessibilityLabel="Đổi kịch bản minh họa"
             onPress={() => setOpen(true)}
-            style={({ pressed }) => [styles.action, { borderColor: theme.border, backgroundColor: pressed ? theme.surfacePressed : theme.surface }]}
+            style={({ pressed }) => [
+              styles.action,
+              { borderColor: theme.border, backgroundColor: pressed ? theme.surfacePressed : theme.surface },
+            ]}
           >
             <Ionicons name="options-outline" size={18} color={theme.text} />
             <Text style={[styles.actionText, { color: theme.text }]}>Đổi kịch bản</Text>
@@ -71,6 +74,16 @@ const styles = StyleSheet.create({
   copy: { flex: 1, gap: 4 },
   title: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
   body: { fontSize: 14, lineHeight: 20 },
-  action: { minHeight: 40, marginTop: 6, alignSelf: 'flex-start', borderWidth: 1, borderRadius: 6, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  action: {
+    minHeight: 40,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   actionText: { fontSize: 14, lineHeight: 19, fontWeight: '700' },
 })

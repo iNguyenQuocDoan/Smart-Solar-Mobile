@@ -54,8 +54,20 @@ export const HISTORY_WINDOWS: HistoryWindow[] = [
   { id: 'last-20', group: BY_COUNT, label: '20', supported: true, limit: 20 },
   { id: 'last-50', group: BY_COUNT, label: '50', supported: true, limit: 50 },
   { id: 'last-100', group: BY_COUNT, label: '100', supported: true, limit: 100 },
-  { id: 'day', group: BY_TIME, label: '24 giờ', supported: false, reason: `Chưa xem được theo 24 giờ. ${NO_TIME_FILTER}` },
-  { id: 'week', group: BY_TIME, label: '7 ngày', supported: false, reason: `Chưa xem được theo 7 ngày. ${NO_TIME_FILTER}` },
+  {
+    id: 'day',
+    group: BY_TIME,
+    label: '24 giờ',
+    supported: false,
+    reason: `Chưa xem được theo 24 giờ. ${NO_TIME_FILTER}`,
+  },
+  {
+    id: 'week',
+    group: BY_TIME,
+    label: '7 ngày',
+    supported: false,
+    reason: `Chưa xem được theo 7 ngày. ${NO_TIME_FILTER}`,
+  },
 ]
 
 export const OVERVIEW_READING_LIMIT = 20

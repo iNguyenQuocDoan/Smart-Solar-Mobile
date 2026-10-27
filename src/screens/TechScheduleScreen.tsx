@@ -15,7 +15,11 @@ export function TechScheduleScreen() {
   const schedule = query.data
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
-      <PageHeader eyebrow="Hiện trường" title="Lịch làm việc" description="Giờ và đường đi được hiển thị theo múi giờ Việt Nam." />
+      <PageHeader
+        eyebrow="Hiện trường"
+        title="Lịch làm việc"
+        description="Giờ và đường đi được hiển thị theo múi giờ Việt Nam."
+      />
       <View style={styles.dayNav}>
         <IconButton label="Ngày trước" icon="chevron-back" onPress={() => setDate((value) => addDays(value, -1))} />
         <Text style={[styles.date, { color: theme.text }]}>{formatDay(date)}</Text>
@@ -33,7 +37,10 @@ export function TechScheduleScreen() {
           </Panel>
           {schedule.conflictCount > 0 || schedule.routesNeedingReview > 0 ? (
             <View style={[styles.warning, { backgroundColor: theme.warningSoft }]}>
-              <Text style={[styles.warningText, { color: theme.warning }]}>{schedule.conflictCount > 0 ? `${schedule.conflictCount} lịch có nguy cơ trùng giờ. ` : ''}{schedule.routesNeedingReview > 0 ? `${schedule.routesNeedingReview} chặng đường cần kiểm tra.` : ''}</Text>
+              <Text style={[styles.warningText, { color: theme.warning }]}>
+                {schedule.conflictCount > 0 ? `${schedule.conflictCount} lịch có nguy cơ trùng giờ. ` : ''}
+                {schedule.routesNeedingReview > 0 ? `${schedule.routesNeedingReview} chặng đường cần kiểm tra.` : ''}
+              </Text>
             </View>
           ) : null}
           {schedule.appointments.length === 0 ? (
@@ -47,17 +54,33 @@ export function TechScheduleScreen() {
                     key={item.appointmentId}
                     accessibilityRole="button"
                     accessibilityLabel={`Xem lịch ${item.propertyName}`}
-                    onPress={() => router.push({ pathname: '/tech/job/[id]', params: { id: item.appointmentId } } as Href)}
-                    style={({ pressed }) => [styles.item, { backgroundColor: pressed ? theme.surfacePressed : theme.surface, borderBottomColor: theme.border }, index === schedule.appointments.length - 1 && styles.last]}
+                    onPress={() =>
+                      router.push({ pathname: '/tech/job/[id]', params: { id: item.appointmentId } } as Href)
+                    }
+                    style={({ pressed }) => [
+                      styles.item,
+                      {
+                        backgroundColor: pressed ? theme.surfacePressed : theme.surface,
+                        borderBottomColor: theme.border,
+                      },
+                      index === schedule.appointments.length - 1 && styles.last,
+                    ]}
                   >
-                    <Text style={[styles.time, { color: theme.text }]}>{formatTimeRange(item.startsAt, item.endsAt)}</Text>
+                    <Text style={[styles.time, { color: theme.text }]}>
+                      {formatTimeRange(item.startsAt, item.endsAt)}
+                    </Text>
                     <Text style={[styles.name, { color: theme.text }]}>{item.propertyName}</Text>
                     <View style={styles.badges}>
-                      <Badge tone={appointmentStatus(item.status, 'technician').tone}>{appointmentStatus(item.status, 'technician').label}</Badge>
+                      <Badge tone={appointmentStatus(item.status, 'technician').tone}>
+                        {appointmentStatus(item.status, 'technician').label}
+                      </Badge>
                       <Badge tone={route.tone}>{route.label}</Badge>
                     </View>
                     {item.routingStatus === 'OK' && item.inboundTravel ? (
-                      <Text style={[styles.travel, { color: theme.textMuted }]}>{formatDistance(item.inboundTravel.distanceMeters)} · {formatDuration(item.inboundTravel.durationSeconds)}</Text>
+                      <Text style={[styles.travel, { color: theme.textMuted }]}>
+                        {formatDistance(item.inboundTravel.distanceMeters)} ·{' '}
+                        {formatDuration(item.inboundTravel.durationSeconds)}
+                      </Text>
                     ) : null}
                   </Pressable>
                 )

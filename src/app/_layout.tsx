@@ -51,7 +51,9 @@ function Routes() {
 }
 
 export default function RootLayout() {
-  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } }))
+  const [queryClient] = useState(
+    () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } }),
+  )
   return (
     <SafeAreaProvider>
       <AppThemeProvider>

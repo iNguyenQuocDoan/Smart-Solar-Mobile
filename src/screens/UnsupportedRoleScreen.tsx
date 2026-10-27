@@ -10,9 +10,12 @@ export function UnsupportedRoleScreen() {
   return (
     <Screen contentStyle={styles.screen}>
       <View style={styles.copy}>
-        <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>Ứng dụng này dành cho khách hàng và kỹ thuật viên.</Text>
+        <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+          Ứng dụng này dành cho khách hàng và kỹ thuật viên.
+        </Text>
         <Text style={[styles.body, { color: theme.textMuted }]}>
-          Tài khoản hiện tại có vai trò {session ? roleLabel[session.role].toLowerCase() : 'không xác định'}. Hãy dùng cổng web dành cho vai trò này.
+          Tài khoản hiện tại có vai trò {session ? roleLabel[session.role].toLowerCase() : 'không xác định'}. Hãy dùng
+          cổng web dành cho vai trò này.
         </Text>
       </View>
       <Button label="Đăng xuất" variant="secondary" onPress={() => void logout()} />

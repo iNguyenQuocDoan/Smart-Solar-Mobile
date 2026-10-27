@@ -1,8 +1,24 @@
 export const VN_TIME_ZONE = 'Asia/Ho_Chi_Minh'
 
-const dayKey = new Intl.DateTimeFormat('en-CA', { timeZone: VN_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit' })
-const dayText = new Intl.DateTimeFormat('vi-VN', { timeZone: VN_TIME_ZONE, weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
-const timeText = new Intl.DateTimeFormat('vi-VN', { timeZone: VN_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const dayKey = new Intl.DateTimeFormat('en-CA', {
+  timeZone: VN_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+const dayText = new Intl.DateTimeFormat('vi-VN', {
+  timeZone: VN_TIME_ZONE,
+  weekday: 'long',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+})
+const timeText = new Intl.DateTimeFormat('vi-VN', {
+  timeZone: VN_TIME_ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
 const money = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 })
 const decimal = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
 

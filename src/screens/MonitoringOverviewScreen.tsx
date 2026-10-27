@@ -47,7 +47,15 @@ export function MonitoringOverviewScreen() {
         icon="sunny-outline"
         title="Chưa có hệ thống được giám sát"
         description="Sau khi lắp đặt, công trình và bộ đo ESP32 sẽ hiển thị tại đây. Bạn vẫn có thể theo dõi yêu cầu khảo sát."
-        action={<Button label="Xem yêu cầu khảo sát" icon="calendar-outline" variant="secondary" compact onPress={() => router.navigate('/customer/requests')} />}
+        action={
+          <Button
+            label="Xem yêu cầu khảo sát"
+            icon="calendar-outline"
+            variant="secondary"
+            compact
+            onPress={() => router.navigate('/customer/requests')}
+          />
+        }
       />
     )
   } else if (!device) {
@@ -63,9 +71,18 @@ export function MonitoringOverviewScreen() {
     body = (
       <>
         {refreshError ? (
-          <RefreshNotice error={refreshError} updatedAt={sitesRefreshFailed ? sites.dataUpdatedAt : readings.dataUpdatedAt} now={now} onRetry={refresh} />
+          <RefreshNotice
+            error={refreshError}
+            updatedAt={sitesRefreshFailed ? sites.dataUpdatedAt : readings.dataUpdatedAt}
+            now={now}
+            onRetry={refresh}
+          />
         ) : null}
-        <DeviceSwitcher devices={site.devices} selectedId={device.deviceId} onSelect={(deviceId) => select(site.siteId, deviceId)} />
+        <DeviceSwitcher
+          devices={site.devices}
+          selectedId={device.deviceId}
+          onSelect={(deviceId) => select(site.siteId, deviceId)}
+        />
         <DeviceMetricCard device={device} refreshFailed={sitesRefreshFailed} now={now} />
         {summary && summary.min != null && summary.max != null && summary.average != null ? (
           <MetricStrip
@@ -108,7 +125,8 @@ export function MonitoringOverviewScreen() {
         <View style={styles.footnote}>
           <Ionicons name="information-circle-outline" size={18} color={theme.textMuted} />
           <Text style={[styles.footnoteText, { color: theme.textMuted }]}>
-            Thiết bị hiện chỉ gửi số đo dòng điện (A). Công suất, điện năng và điện áp sẽ hiển thị khi thiết bị cung cấp các số liệu này.
+            Thiết bị hiện chỉ gửi số đo dòng điện (A). Công suất, điện năng và điện áp sẽ hiển thị khi thiết bị cung cấp
+            các số liệu này.
           </Text>
         </View>
       </>
@@ -122,7 +140,9 @@ export function MonitoringOverviewScreen() {
         {site && sites.data ? (
           <SitePicker sites={sites.data} site={site} onSelect={(siteId) => select(siteId, null)} />
         ) : (
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>Tổng quan</Text>
+          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+            Tổng quan
+          </Text>
         )}
       </View>
       <DemoBanner />

@@ -37,7 +37,15 @@ export function ShortcutList({ items }: { items: Shortcut[] }) {
 
 const styles = StyleSheet.create({
   list: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
-  row: { minHeight: 68, paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  row: {
+    minHeight: 68,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   last: { borderBottomWidth: 0 },
   iconBox: { width: 40, height: 40, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   copy: { flex: 1, gap: 2 },

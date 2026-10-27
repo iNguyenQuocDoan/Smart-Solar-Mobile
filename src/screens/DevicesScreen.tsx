@@ -18,7 +18,9 @@ function statusSummary(devices: MonitoringDevice[], refreshFailed: boolean) {
     const label = deviceStatusView(device, refreshFailed).label
     counts.set(label, (counts.get(label) ?? 0) + 1)
   }
-  return [`${devices.length} thiết bị`, ...[...counts].map(([label, count]) => `${count} ${label.toLowerCase()}`)].join(' · ')
+  return [`${devices.length} thiết bị`, ...[...counts].map(([label, count]) => `${count} ${label.toLowerCase()}`)].join(
+    ' · ',
+  )
 }
 
 export function DevicesScreen() {
@@ -41,7 +43,15 @@ export function DevicesScreen() {
         icon="sunny-outline"
         title="Chưa có hệ thống được giám sát"
         description="Thiết bị đo sẽ xuất hiện sau khi công trình được lắp đặt."
-        action={<Button label="Xem yêu cầu khảo sát" icon="calendar-outline" variant="secondary" compact onPress={() => router.navigate('/customer/requests')} />}
+        action={
+          <Button
+            label="Xem yêu cầu khảo sát"
+            icon="calendar-outline"
+            variant="secondary"
+            compact
+            onPress={() => router.navigate('/customer/requests')}
+          />
+        }
       />
     )
   } else {
@@ -49,7 +59,12 @@ export function DevicesScreen() {
       <>
         <SitePicker variant="field" sites={sites.data} site={site} onSelect={(siteId) => select(siteId, null)} />
         {refreshFailed && sites.error ? (
-          <RefreshNotice error={sites.error} updatedAt={sites.dataUpdatedAt} now={now} onRetry={() => void sites.refetch()} />
+          <RefreshNotice
+            error={sites.error}
+            updatedAt={sites.dataUpdatedAt}
+            now={now}
+            onRetry={() => void sites.refetch()}
+          />
         ) : null}
         {site.devices.length === 0 ? (
           <StateView
@@ -59,7 +74,9 @@ export function DevicesScreen() {
           />
         ) : (
           <View style={styles.section}>
-            <Text style={[styles.summary, { color: theme.textMuted }]}>{statusSummary(site.devices, refreshFailed)}</Text>
+            <Text style={[styles.summary, { color: theme.textMuted }]}>
+              {statusSummary(site.devices, refreshFailed)}
+            </Text>
             <View style={[styles.list, { borderColor: theme.border }]}>
               {site.devices.map((device, index) => (
                 <DeviceRow

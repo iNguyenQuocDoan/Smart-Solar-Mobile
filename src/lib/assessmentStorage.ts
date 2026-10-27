@@ -10,7 +10,7 @@ function webStorage() {
 }
 
 async function get(key: string) {
-  return Platform.OS === 'web' ? webStorage()?.getItem(key) ?? null : SecureStore.getItemAsync(key)
+  return Platform.OS === 'web' ? (webStorage()?.getItem(key) ?? null) : SecureStore.getItemAsync(key)
 }
 
 async function set(key: string, value: string | null) {
