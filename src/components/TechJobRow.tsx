@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   last: { borderBottomWidth: 0 },
-  timeBlock: { width: 78, alignSelf: 'flex-start', gap: 3 },
+  timeBlock: { flexShrink: 0, alignSelf: 'flex-start', gap: 3 },
   time: { fontSize: 15, lineHeight: 21, fontWeight: '800', fontVariant: ['tabular-nums'] },
   day: { fontSize: 12, lineHeight: 17, textTransform: 'capitalize' },
   copy: { flex: 1, alignItems: 'flex-start', gap: 5 },

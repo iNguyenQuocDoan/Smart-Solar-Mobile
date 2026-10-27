@@ -61,7 +61,7 @@ export function TechOpenJobRow({ job, last = false }: { job: OpenAppointment; la
 const styles = StyleSheet.create({
   row: { padding: 16, flexDirection: 'row', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   last: { borderBottomWidth: 0 },
-  timeBlock: { width: 78, gap: 3 },
+  timeBlock: { flexShrink: 0, gap: 3 },
   time: { fontSize: 15, lineHeight: 21, fontWeight: '800', fontVariant: ['tabular-nums'] },
   day: { fontSize: 12, lineHeight: 17 },
   copy: { flex: 1, alignItems: 'flex-start', gap: 5 },
