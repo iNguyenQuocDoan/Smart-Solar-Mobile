@@ -547,7 +547,7 @@ export function AssessmentScreen() {
           await saveAssessmentDraft(account, nextDraft)
           setDraft(nextDraft)
           setSurface(surfaceFromView(latest))
-          setFormError('Đã tải dữ liệu mới nhất từ máy chủ. Kiểm tra lại trước khi lưu.')
+          setFormError('Đã tải dữ liệu mới nhất. Kiểm tra lại trước khi lưu.')
         } catch (reloadReason) {
           setFormError(fieldError(reloadReason))
         }
@@ -655,7 +655,7 @@ export function AssessmentScreen() {
   if (step === 0) {
     content = (
       <Panel>
-        <SectionTitle detail="Chỉ khai một lần cho tài khoản này.">Thông tin khách hàng</SectionTitle>
+        <SectionTitle>Thông tin khách hàng</SectionTitle>
         <ChoiceGroup
           label="Bạn lắp đặt cho"
           value={profile.customerType}
@@ -694,9 +694,7 @@ export function AssessmentScreen() {
   } else if (step === 1) {
     content = (
       <Panel>
-        <SectionTitle detail="Kỹ thuật viên phụ trách khu vực của phường, xã sẽ nhận lịch khảo sát.">
-          Địa điểm lắp đặt
-        </SectionTitle>
+        <SectionTitle>Địa điểm lắp đặt</SectionTitle>
         <Field
           label="Tên địa điểm"
           value={site.name}
@@ -881,11 +879,7 @@ export function AssessmentScreen() {
           onPress={() => router.navigate('/customer/requests')}
         />
       </View>
-      <PageHeader
-        eyebrow="Khách hàng"
-        title="Đánh giá sơ bộ"
-        description="Khai số liệu công trình để gửi yêu cầu khảo sát."
-      />
+      <PageHeader title="Đánh giá sơ bộ" />
       <StepBar current={step} firstStep={firstStep} />
       {content}
       {formError ? (

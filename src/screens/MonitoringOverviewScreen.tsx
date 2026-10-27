@@ -46,7 +46,7 @@ export function MonitoringOverviewScreen() {
       <StateView
         icon="sunny-outline"
         title="Chưa có hệ thống được giám sát"
-        description="Sau khi lắp đặt, công trình và bộ đo ESP32 sẽ hiển thị tại đây. Bạn vẫn có thể theo dõi yêu cầu khảo sát."
+        description="Công trình sẽ hiện ở đây sau khi lắp đặt xong."
         action={
           <Button
             label="Xem yêu cầu khảo sát"
@@ -63,7 +63,7 @@ export function MonitoringOverviewScreen() {
       <StateView
         icon="hardware-chip-outline"
         title="Công trình chưa có thiết bị giám sát"
-        description="Bộ đo ESP32 sẽ xuất hiện tại đây sau khi kỹ thuật viên lắp đặt và kích hoạt."
+        description="Bộ đo sẽ xuất hiện tại đây sau khi kỹ thuật viên lắp đặt và kích hoạt."
       />
     )
   } else {
@@ -91,7 +91,6 @@ export function MonitoringOverviewScreen() {
               { label: 'Trung bình', value: `${formatAmpere(summary.average)} A` },
               { label: 'Cao nhất', value: `${formatAmpere(summary.max)} A` },
             ]}
-            caption={`Tính trên ${summary.measured} số đo gần nhất có giá trị${summary.missing ? `, bỏ qua ${summary.missing} số đo thiếu` : ''}.`}
           />
         ) : null}
         {hasReadings ? (
@@ -136,7 +135,6 @@ export function MonitoringOverviewScreen() {
   return (
     <Screen refreshing={sites.isRefetching || readings.isRefetching} onRefresh={refresh}>
       <View style={styles.header}>
-        <Text style={[styles.eyebrow, { color: theme.brandText }]}>Giám sát điện mặt trời</Text>
         {site && sites.data ? (
           <SitePicker sites={sites.data} site={site} onSelect={(siteId) => select(siteId, null)} />
         ) : (
@@ -153,7 +151,6 @@ export function MonitoringOverviewScreen() {
 
 const styles = StyleSheet.create({
   header: { gap: 6 },
-  eyebrow: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 0.7, textTransform: 'uppercase' },
   title: { fontSize: 28, lineHeight: 34, fontWeight: '700', letterSpacing: -0.6 },
   footnote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   footnoteText: { flex: 1, fontSize: 13, lineHeight: 19 },

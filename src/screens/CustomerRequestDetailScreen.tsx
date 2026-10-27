@@ -65,7 +65,7 @@ function BookingForm({
 
   return (
     <Panel>
-      <SectionTitle detail="Giờ Việt Nam">{mode === 'book' ? 'Chọn giờ khảo sát' : 'Đổi giờ khảo sát'}</SectionTitle>
+      <SectionTitle>{mode === 'book' ? 'Chọn giờ khảo sát' : 'Đổi giờ khảo sát'}</SectionTitle>
       <View style={styles.dayNav}>
         <IconButton
           label="Ngày trước"
@@ -172,12 +172,7 @@ export function CustomerRequestDetailScreen() {
             <Badge tone={status.tone}>{status.label}</Badge>
             <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(request.surveyRequestId)}</Text>
           </View>
-          <PageHeader
-            title={request.propertyName || 'Công trình chưa đặt tên'}
-            description={
-              canBook(request) ? 'Chọn ngày giờ để kỹ thuật viên tới khảo sát.' : 'Thông tin lịch khảo sát hiện tại.'
-            }
-          />
+          <PageHeader title={request.propertyName || 'Công trình chưa đặt tên'} />
           {canBook(request) ? (
             <BookingForm
               requestId={request.surveyRequestId}

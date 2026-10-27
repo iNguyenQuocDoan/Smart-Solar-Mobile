@@ -29,11 +29,8 @@ export function CustomerRequestsScreen() {
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
       <PageHeader
-        eyebrow="Khảo sát"
-        title="Yêu cầu của bạn"
-        description={
-          toBook ? `${toBook} yêu cầu đang chờ bạn chọn giờ khảo sát.` : 'Theo dõi lịch hẹn và người được phân công.'
-        }
+        title="Yêu cầu khảo sát"
+        description={toBook ? `${toBook} yêu cầu đang chờ bạn chọn giờ khảo sát.` : undefined}
         action={
           <Button
             label="Đánh giá mới"

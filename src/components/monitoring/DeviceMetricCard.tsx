@@ -1,6 +1,6 @@
 import { MetricCard } from '@/components/monitoring/MetricCard'
 import { StatusPill, TestDataPill } from '@/components/monitoring/StatusPill'
-import { formatAdc, formatAmpere, formatReceivedAt, formatRelative } from '@/lib/monitoring/format'
+import { formatAmpere, formatReceivedAt, formatRelative } from '@/lib/monitoring/format'
 import { deviceStatusView } from '@/lib/monitoring/status'
 import type { MonitoringDevice } from '@/lib/monitoring/types'
 
@@ -16,12 +16,7 @@ export function DeviceMetricCard({
 }) {
   const status = deviceStatusView(device, refreshFailed)
   const reading = device.lastReading
-  const missingCurrent =
-    reading && reading.currentA == null
-      ? reading.adcRaw != null
-        ? `Bản ghi chỉ có giá trị cảm biến thô (ADC ${formatAdc(reading.adcRaw)}), chưa được quy đổi sang ampe.`
-        : 'Bản ghi này không có số đo dòng điện.'
-      : null
+  const missingCurrent = reading && reading.currentA == null ? 'Lần đo này chưa có số đo dòng điện.' : null
   const notes = [status.note, missingCurrent].filter((note): note is string => Boolean(note))
   const caption = reading
     ? `${status.current ? 'Cập nhật' : 'Nhận'} lúc ${formatReceivedAt(reading.receivedAtUtc, now)} · ${formatRelative(reading.receivedAtUtc, now)}`

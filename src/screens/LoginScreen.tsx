@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useAuth } from '@/contexts/AuthContext'
 import { ApiError } from '@/lib/api/client'
 import { Button, Field, Screen } from '@/components/ui'
@@ -45,29 +45,19 @@ export function LoginScreen() {
     >
       <Screen contentStyle={styles.screen}>
         <View style={styles.brand}>
-          <View style={[styles.mark, { backgroundColor: theme.brand }]}>
-            <Ionicons name="sunny" size={26} color={theme.onBrand} />
-          </View>
-          <View>
-            <Text style={[styles.brandName, { color: theme.text }]}>Smart Solar</Text>
-            <Text style={[styles.brandMeta, { color: theme.textMuted }]}>Ứng dụng hiện trường</Text>
-          </View>
-        </View>
-
-        <View style={styles.intro}>
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
-            Công việc rõ ràng, ngay trên điện thoại.
-          </Text>
-          <Text style={[styles.lead, { color: theme.textMuted }]}>
-            Dành cho khách hàng theo dõi khảo sát và kỹ thuật viên làm việc tại công trình.
-          </Text>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.mark}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+          />
+          <Text style={[styles.brandName, { color: theme.text }]}>Smart Solar</Text>
         </View>
 
         <View style={[styles.form, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.formHeading}>
-            <Text style={[styles.formTitle, { color: theme.text }]}>Đăng nhập</Text>
-            <Text style={[styles.formNote, { color: theme.textMuted }]}>Sử dụng tài khoản Smart Solar của bạn.</Text>
-          </View>
+          <Text accessibilityRole="header" style={[styles.formTitle, { color: theme.text }]}>
+            Đăng nhập
+          </Text>
           {error ? (
             <View accessibilityRole="alert" style={[styles.alert, { backgroundColor: theme.dangerSoft }]}>
               <Ionicons name="alert-circle-outline" size={20} color={theme.danger} />
@@ -107,9 +97,6 @@ export function LoginScreen() {
             </Pressable>
           </View>
           <Button label="Đăng nhập" onPress={() => void submit()} loading={pending} />
-          <Text style={[styles.secureNote, { color: theme.textMuted }]}>
-            Phiên đăng nhập được lưu an toàn trên thiết bị.
-          </Text>
         </View>
       </Screen>
     </KeyboardAvoidingView>
@@ -120,16 +107,10 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   screen: { justifyContent: 'center', paddingTop: 32, paddingBottom: 40, gap: 32 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  mark: { width: 48, height: 48, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  mark: { width: 60, height: 48 },
   brandName: { fontSize: 18, lineHeight: 24, fontWeight: '800' },
-  brandMeta: { fontSize: 13, lineHeight: 18 },
-  intro: { gap: 12, maxWidth: 520 },
-  title: { fontSize: 34, lineHeight: 40, fontWeight: '800', letterSpacing: -1.1 },
-  lead: { fontSize: 16, lineHeight: 24, maxWidth: 480 },
   form: { borderWidth: 1, borderRadius: 6, padding: 20, gap: 18, maxWidth: 520, width: '100%', alignSelf: 'center' },
-  formHeading: { gap: 4 },
   formTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
-  formNote: { fontSize: 14, lineHeight: 20 },
   alert: { borderRadius: 6, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   alertText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '600' },
   passwordToggle: {
@@ -141,5 +122,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  secureNote: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
 })

@@ -19,7 +19,7 @@ export async function getRefreshToken() {
 }
 
 export async function saveTokens(tokens: AuthTokens) {
-  if (!tokens.accessToken || !tokens.refreshToken) throw new Error('Máy chủ không trả về phiên đăng nhập hợp lệ.')
+  if (!tokens.accessToken || !tokens.refreshToken) throw new Error('Chưa đăng nhập được. Vui lòng thử lại.')
   accessToken = tokens.accessToken
   if (Platform.OS === 'web') webStorage()?.setItem(refreshKey, tokens.refreshToken)
   else await SecureStore.setItemAsync(refreshKey, tokens.refreshToken)

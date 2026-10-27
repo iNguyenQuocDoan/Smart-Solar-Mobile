@@ -112,7 +112,7 @@ export function MonitoringHistoryScreen() {
               <CurrentChart readings={readings.data} plotHeight={200} dimmed={readings.isPlaceholderData} />
             </Panel>
             <View style={styles.section}>
-              <SectionTitle detail="Mới nhất ở trên">Bản ghi</SectionTitle>
+              <SectionTitle>Các lần đo</SectionTitle>
               <ReadingList readings={readings.data} />
             </View>
           </>
@@ -126,11 +126,7 @@ export function MonitoringHistoryScreen() {
       <View style={styles.back}>
         <IconButton label="Quay lại" icon="arrow-back" onPress={() => router.back()} />
       </View>
-      <PageHeader
-        eyebrow={site?.name ?? 'Giám sát'}
-        title="Lịch sử dữ liệu"
-        description={device ? `${device.name} · Mã ${device.deviceId}` : undefined}
-      />
+      <PageHeader title="Lịch sử dữ liệu" description={device?.name} />
       <DemoBanner />
       {body}
     </Screen>

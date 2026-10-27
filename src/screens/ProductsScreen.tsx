@@ -22,7 +22,7 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
 
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
-      <PageHeader eyebrow="Danh mục" title="Sản phẩm" description="Thiết bị đang được Smart Solar cung cấp." />
+      <PageHeader title="Sản phẩm" />
       <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <Ionicons name="search-outline" size={20} color={theme.textMuted} />
         <TextInput

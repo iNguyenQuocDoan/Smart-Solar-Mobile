@@ -73,8 +73,8 @@ export function createMockSource(initial: DemoConfig): {
   async function respond<T>(build: (config: DemoConfig, now: number) => T): Promise<T> {
     const config = current
     await new Promise((resolve) => setTimeout(resolve, config.fault === 'slow' ? 2500 : 300))
-    if (config.fault === 'network') throw new ApiError('Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.', 0)
-    if (config.fault === 'server') throw new ApiError('Máy chủ đang gặp sự cố. Vui lòng thử lại sau.', 500)
+    if (config.fault === 'network') throw new ApiError('Không kết nối được. Kiểm tra mạng rồi thử lại.', 0)
+    if (config.fault === 'server') throw new ApiError('Hệ thống đang gặp sự cố. Vui lòng thử lại sau.', 500)
     return build(config, Date.now())
   }
 
@@ -102,8 +102,7 @@ export function createMockSource(initial: DemoConfig): {
       }),
     listReadings: (deviceId, limit) =>
       respond((config, now) => {
-        if (!Number.isInteger(limit) || limit < 1 || limit > 100)
-          throw new ApiError('limit phải là số nguyên từ 1 đến 100.', 400)
+        if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new ApiError('Không tải được số đo.', 400)
         const found = locate(deviceId)
         if (!found || config.scenario === 'no-sites' || config.scenario === 'no-devices') return []
         const { lastTick } = timeline(found.index, config, now)

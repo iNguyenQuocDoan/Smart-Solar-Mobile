@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { StyleSheet, Text, View } from 'react-native'
-import { formatAdc, formatAmpere, formatClock, formatCurrent, formatDayMonth } from '@/lib/monitoring/format'
+import { formatAmpere, formatClock, formatCurrent, formatDayMonth } from '@/lib/monitoring/format'
 import type { DeviceReading } from '@/lib/monitoring/types'
 import { useAppTheme } from '@/theme/theme'
 
@@ -34,9 +34,6 @@ export function ReadingList({ readings }: { readings: DeviceReading[] }) {
             ) : (
               <Text style={[styles.missing, { color: theme.textMuted }]}>Không có số đo</Text>
             )}
-            {reading.currentA == null && reading.adcRaw != null ? (
-              <Text style={[styles.small, { color: theme.textMuted }]}>ADC thô {formatAdc(reading.adcRaw)}</Text>
-            ) : null}
             {reading.isTest ? (
               <View style={styles.tag}>
                 <Ionicons name="flask-outline" size={13} color={theme.info} />

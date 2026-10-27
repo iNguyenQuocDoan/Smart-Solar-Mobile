@@ -47,7 +47,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const login = useCallback(async (email: string, password: string) => {
     const tokens = await authService.login(email.trim(), password)
-    if (!tokens.accessToken || !tokens.refreshToken) throw new Error('Máy chủ không trả về phiên đăng nhập hợp lệ.')
+    if (!tokens.accessToken || !tokens.refreshToken) throw new Error('Chưa đăng nhập được. Vui lòng thử lại.')
     const next = sessionFromToken(tokens.accessToken)
     if (!next) throw new Error('Không đọc được vai trò từ tài khoản này.')
     await saveTokens(tokens)

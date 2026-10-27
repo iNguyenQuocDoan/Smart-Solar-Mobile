@@ -140,7 +140,7 @@ export function TechJobDetailScreen() {
             <Button label="Mở bản đồ" icon="map-outline" variant="secondary" onPress={openMap} />
           </Panel>
           <Panel>
-            <SectionTitle detail="Đo lại tại công trình để đối chiếu.">Số liệu khách khai</SectionTitle>
+            <SectionTitle>Số liệu khách khai</SectionTitle>
             <View style={styles.pairRow}>
               <KeyValue
                 label="Rộng × dài"

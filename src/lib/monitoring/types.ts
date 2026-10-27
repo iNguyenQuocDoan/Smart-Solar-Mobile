@@ -47,7 +47,7 @@ export type HistoryWindow =
 
 const BY_COUNT = 'Số đo gần nhất'
 const BY_TIME = 'Theo thời gian'
-const NO_TIME_FILTER = 'Máy chủ IoT hiện chỉ trả tối đa 100 số đo gần nhất và chưa lọc được theo thời gian.'
+const NO_TIME_FILTER = 'Hiện chỉ xem được tối đa 100 số đo gần nhất.'
 
 // The IoT API accepts `limit` 1–100 and has no time-range query, so only count windows are selectable.
 export const HISTORY_WINDOWS: HistoryWindow[] = [

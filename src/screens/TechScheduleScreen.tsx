@@ -17,11 +17,7 @@ export function TechScheduleScreen() {
   const items = schedule?.appointments.filter((item) => !item.isCapacityHold) ?? []
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
-      <PageHeader
-        eyebrow="Hiện trường"
-        title="Lịch làm việc"
-        description="Các lịch bạn đã nhận, giờ theo múi giờ Việt Nam."
-      />
+      <PageHeader title="Lịch làm việc" />
       <View style={styles.dayNav}>
         <IconButton label="Ngày trước" icon="chevron-back" onPress={() => setDate((value) => addDays(value, -1))} />
         <Text style={[styles.date, { color: theme.text }]}>{formatDay(date)}</Text>

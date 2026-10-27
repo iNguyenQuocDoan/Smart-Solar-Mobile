@@ -7,7 +7,7 @@ import { DeviceMetricCard } from '@/components/monitoring/DeviceMetricCard'
 import { Button, IconButton, KeyValue, PageHeader, Panel, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useMonitoring } from '@/contexts/MonitoringContext'
 import { useMonitoringSites, useNow } from '@/hooks/monitoring'
-import { formatAdc, formatFullTimestamp, formatRelative, formatUptime } from '@/lib/monitoring/format'
+import { formatFullTimestamp, formatRelative, formatUptime } from '@/lib/monitoring/format'
 
 export function DeviceDetailScreen() {
   const router = useRouter()
@@ -46,7 +46,7 @@ export function DeviceDetailScreen() {
     const reading = device.lastReading
     body = (
       <>
-        <PageHeader eyebrow={site.name} title={device.name} description={`Mã thiết bị ${device.deviceId}`} />
+        <PageHeader title={device.name} description={site.name} />
         <DemoBanner />
         {refreshFailed && sites.error ? (
           <RefreshNotice
@@ -60,20 +60,15 @@ export function DeviceDetailScreen() {
         {reading ? (
           <>
             <Panel>
-              <SectionTitle detail="Các trường thiết bị gửi trong bản ghi gần nhất">Bản ghi gần nhất</SectionTitle>
+              <SectionTitle>Lần đo gần nhất</SectionTitle>
               <KeyValue
-                label="Thời điểm máy chủ nhận"
+                label="Thời điểm nhận"
                 value={`${formatFullTimestamp(reading.receivedAtUtc)} · ${formatRelative(reading.receivedAtUtc, now)}`}
-              />
-              <KeyValue
-                label="Giá trị cảm biến thô (ADC)"
-                value={reading.adcRaw == null ? 'Thiết bị không gửi' : formatAdc(reading.adcRaw)}
               />
               <KeyValue
                 label="Thời gian thiết bị chạy liên tục"
                 value={reading.uptimeMs == null ? 'Thiết bị không gửi' : formatUptime(reading.uptimeMs)}
               />
-              <KeyValue label="Loại dữ liệu" value={reading.isTest ? 'Dữ liệu thử nghiệm' : 'Số đo thật'} />
             </Panel>
             <Button
               label="Xem lịch sử dữ liệu"

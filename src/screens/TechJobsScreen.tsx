@@ -37,13 +37,8 @@ export function TechJobsScreen() {
       onRefresh={() => void Promise.all([open.refetch(), mine.refetch()])}
     >
       <PageHeader
-        eyebrow="Kỹ thuật viên"
         title="Việc của tôi"
-        description={
-          canTake
-            ? `${canTake} lịch trong khu vực đang chờ người nhận.`
-            : 'Các lịch khảo sát bạn đã nhận hoặc được phân công.'
-        }
+        description={canTake ? `${canTake} lịch trong khu vực đang chờ người nhận.` : undefined}
       />
       <View accessibilityRole="tablist" style={[styles.tabs, { backgroundColor: theme.surfaceMuted }]}>
         {(['open', 'upcoming', 'past'] as const).map((value) => {
@@ -69,7 +64,7 @@ export function TechJobsScreen() {
           <StateView
             icon="calendar-clear-outline"
             title="Không có lịch nào đang chờ"
-            description="Khi khách trong khu vực của bạn đặt giờ khảo sát, lịch sẽ hiện ở đây để bạn nhận."
+            description="Lịch khách đặt trong khu vực của bạn sẽ hiện ở đây."
           />
         ) : (
           <View style={[styles.list, { borderColor: theme.border }]}>

@@ -70,7 +70,7 @@ export function DevicesScreen() {
           <StateView
             icon="hardware-chip-outline"
             title="Công trình chưa có thiết bị giám sát"
-            description="Bộ đo ESP32 sẽ xuất hiện tại đây sau khi kỹ thuật viên lắp đặt và kích hoạt."
+            description="Bộ đo sẽ xuất hiện tại đây sau khi kỹ thuật viên lắp đặt và kích hoạt."
           />
         ) : (
           <View style={styles.section}>
@@ -100,7 +100,7 @@ export function DevicesScreen() {
 
   return (
     <Screen refreshing={sites.isRefetching} onRefresh={() => void sites.refetch()}>
-      <PageHeader eyebrow="Giám sát" title="Thiết bị" description="Bộ đo ESP32 gắn với công trình của bạn." />
+      <PageHeader title="Thiết bị" />
       <DemoBanner />
       {body}
     </Screen>
