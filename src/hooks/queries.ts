@@ -26,8 +26,9 @@ export function useHcmCommunes() {
   })
 }
 
+/** Tự tải lại để số đỏ trên tab cập nhật khi kỹ thuật viên nhận lịch hay lịch đổi */
 export function useCustomerRequests() {
-  return useQuery({ queryKey: keys.customerRequests, queryFn: customerService.listRequests })
+  return useQuery({ queryKey: keys.customerRequests, queryFn: customerService.listRequests, refetchInterval: 60_000 })
 }
 
 export function useCustomerRequest(id: string) {

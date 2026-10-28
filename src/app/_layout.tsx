@@ -1,10 +1,11 @@
-import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { markOwnAction } from '@/hooks/tabAlert'
 import { isMobileRole } from '@/lib/auth/roles'
 import { AppThemeProvider, useAppTheme } from '@/theme/theme'
 
@@ -52,7 +53,12 @@ function Routes() {
 
 export default function RootLayout() {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } }),
+    () =>
+      new QueryClient({
+        defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
+        // Thay đổi kéo theo thao tác của chính người dùng không báo đỏ trên tab
+        mutationCache: new MutationCache({ onSettled: () => markOwnAction() }),
+      }),
   )
   return (
     <SafeAreaProvider>

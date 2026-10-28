@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { Tabs } from 'expo-router'
+import { Tabs, usePathname } from 'expo-router'
 import type { ComponentProps } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCustomerRequests } from '@/hooks/queries'
+import { useTabAlert } from '@/hooks/tabAlert'
+import type { CustomerRequest } from '@/lib/api/types'
 import { canBook } from '@/lib/status'
 import { useAppTheme } from '@/theme/theme'
 
@@ -13,11 +15,21 @@ function icon(name: Icon) {
   }
 }
 
+// Số đỏ trên tab Yêu cầu: yêu cầu chưa đặt giờ, cộng yêu cầu vừa đổi (kỹ thuật viên nhận lịch, lịch bị huỷ) mà chưa xem
+const requestAlert = {
+  key: (r: CustomerRequest) => r.surveyRequestId,
+  sig: (r: CustomerRequest) =>
+    [r.status, r.appointment?.appointmentId, r.appointment?.status, r.appointment?.acceptanceStatus].join('|'),
+  todo: canBook,
+}
+
 export default function CustomerTabs() {
   const theme = useAppTheme()
   const insets = useSafeAreaInsets()
+  const pathname = usePathname()
   const requests = useCustomerRequests()
-  const toBook = (requests.data ?? []).filter(canBook).length
+  const viewingRequests = pathname === '/customer/requests' || pathname.startsWith('/customer/request/')
+  const alert = useTabAlert('customer-requests', requests.data, viewingRequests, requestAlert)
   return (
     <Tabs
       backBehavior="history"
@@ -43,9 +55,9 @@ export default function CustomerTabs() {
         options={{
           title: 'Yêu cầu',
           tabBarIcon: icon('calendar-outline'),
-          tabBarBadge: toBook || undefined,
+          tabBarBadge: alert || undefined,
           tabBarBadgeStyle: { backgroundColor: theme.danger, color: theme.dark ? theme.canvas : theme.onBrand },
-          tabBarAccessibilityLabel: toBook ? `Yêu cầu, ${toBook} yêu cầu cần đặt giờ khảo sát` : undefined,
+          tabBarAccessibilityLabel: alert ? `Yêu cầu, ${alert} cần xem` : undefined,
         }}
       />
       <Tabs.Screen name="products" options={{ title: 'Sản phẩm', tabBarIcon: icon('grid-outline') }} />
