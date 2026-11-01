@@ -64,12 +64,13 @@ const ASSIGNMENT_SOURCES: Record<string, string> = {
   MANAGER_DISPATCH: 'Quản lý điều phối',
 }
 
+// Backend trả tên enum in hoa (ROOFTOP); bản cũ viết Rooftop nên so không phân biệt hoa thường
 const SURFACE_NAMES: Record<string, string> = {
-  Rooftop: 'Mái nhà',
-  Ground: 'Mặt đất',
-  Carport: 'Mái che bãi xe',
-  Facade: 'Mặt dựng',
-  Other: 'Khác',
+  ROOFTOP: 'Mái nhà',
+  GROUND: 'Mặt đất',
+  CARPORT: 'Mái che bãi xe',
+  FACADE: 'Mặt dựng',
+  OTHER: 'Khác',
 }
 
 type RequestState = Pick<CustomerRequest, 'status'> & {
@@ -81,9 +82,21 @@ export function canBook(request: RequestState) {
   return !request.appointment && request.status === 'PENDING'
 }
 
+/** Khách đã rút (CANCELLED) hoặc kinh doanh đã đóng (CLOSED): không mở lại được */
+export function isClosedRequest(request: Pick<CustomerRequest, 'status'>) {
+  return request.status === 'CANCELLED' || request.status === 'CLOSED'
+}
+
+/** Rút được khi không còn lịch đang hẹn (chưa đặt hoặc đã khảo sát xong); còn lịch thì huỷ lịch trước */
+export function canWithdraw(request: RequestState) {
+  if (isClosedRequest(request)) return false
+  return !request.appointment || request.appointment.acceptanceStatus === 'COMPLETED'
+}
+
 export function customerStatus(request: RequestState): Meta {
   if (request.status === 'COMPLETED') return { label: 'Đã khảo sát xong', tone: 'neutral' }
-  if (request.status === 'CANCELLED') return { label: 'Đã huỷ', tone: 'neutral' }
+  if (request.status === 'CANCELLED') return { label: 'Đã rút yêu cầu', tone: 'neutral' }
+  if (request.status === 'CLOSED') return { label: 'Đã đóng', tone: 'neutral' }
   if (!request.appointment) {
     return canBook(request)
       ? { label: 'Chưa đặt giờ khảo sát', tone: 'danger' }
@@ -120,5 +133,5 @@ export function assignmentSourceLabel(source: string | null | undefined) {
 }
 
 export function surfaceLabel(value: string | null | undefined) {
-  return value ? (SURFACE_NAMES[value] ?? value) : '—'
+  return value ? (SURFACE_NAMES[value.toUpperCase()] ?? value) : '—'
 }

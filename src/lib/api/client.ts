@@ -41,6 +41,11 @@ const messages: Record<string, string> = {
   TECHNICIAN_OUTSIDE_ZONE: 'Công trình không thuộc khu vực của bạn.',
   ONSITE_SURVEY_IN_PROGRESS: 'Buổi khảo sát đã bắt đầu nên không đổi được lịch này.',
   SCHEDULING_VALIDATION_FAILED: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.',
+  SURVEY_REQUEST_CLOSED: 'Yêu cầu này đã đóng nên không thay đổi được nữa.',
+  SURVEY_REQUEST_CONTRACT_EXISTS: 'Yêu cầu đã có hợp đồng nên không rút được. Liên hệ bộ phận kinh doanh.',
+  SURVEY_REQUEST_APPOINTMENT_OPEN: 'Yêu cầu còn lịch khảo sát đang hẹn. Huỷ lịch trước rồi rút yêu cầu.',
+  SURVEY_REQUEST_CLOSURE_CONFLICT: 'Báo giá của yêu cầu vừa thay đổi. Hãy tải lại rồi thử lần nữa.',
+  SCHEMA_NOT_READY: 'Hệ thống đang cập nhật. Vui lòng thử lại sau ít phút.',
 }
 
 const statusMessages: Record<number, string> = {

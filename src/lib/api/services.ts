@@ -43,10 +43,13 @@ export const customerService = {
     apiPost<CustomerAppointment>(`/customers/me/survey-requests/${encode(id)}/booking/cancel`, {
       reason: 'Khách hàng hủy lịch trên ứng dụng di động.',
     }),
+  /** Rút hẳn yêu cầu, không mở lại được. Còn lịch đang hẹn hoặc đã có hợp đồng thì bị từ chối (409) */
+  withdraw: (id: string) => apiPost(`/customers/me/survey-requests/${encode(id)}/withdraw`, { reason: null }),
 }
 
 export const technicianService = {
-  listAppointments: () => apiGet<TechnicianAppointment[]>('/technicians/me/appointments'),
+  /** Gồm cả lịch quá giờ chưa khảo sát và lịch đã khảo sát xong */
+  listAppointments: () => apiGet<TechnicianAppointment[]>('/technicians/me/appointments?includePast=true'),
   getAppointment: (id: string) => apiGet<TechnicianJob>(`/technicians/me/appointments/${encode(id)}`),
   /** Lịch khách đặt trong khu vực của mình đang chờ người nhận, ai nhận trước thì được */
   listOpen: () => apiGet<OpenAppointment[]>('/technicians/me/open-appointments'),

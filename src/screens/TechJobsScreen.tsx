@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useOpenJobs, useTechJobs } from '@/hooks/queries'
+import type { TechnicianAppointment } from '@/lib/api/types'
 import { PageHeader, QueryState, Screen, StateView } from '@/components/ui'
 import { TechJobRow } from '@/components/TechJobRow'
 import { TechOpenJobRow } from '@/components/TechOpenJobRow'
@@ -8,7 +9,10 @@ import { useAppTheme } from '@/theme/theme'
 
 type Tab = 'open' | 'upcoming' | 'past'
 
-const TAB_LABELS: Record<Tab, string> = { open: 'Chờ nhận', upcoming: 'Sắp tới', past: 'Đã qua' }
+const TAB_LABELS: Record<Tab, string> = { open: 'Chờ nhận', upcoming: 'Đã nhận', past: 'Đã qua' }
+
+/** Lịch chưa kết thúc hoặc đã quá giờ mà chưa khảo sát xong vẫn là việc phải làm */
+const isActive = (job: TechnicianAppointment, now: number) => job.isOverdue || new Date(job.endsAt).getTime() >= now
 
 export function TechJobsScreen() {
   const theme = useAppTheme()
@@ -18,12 +22,8 @@ export function TechJobsScreen() {
   const [now] = useState(() => Date.now())
   const openJobs = [...(open.data ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))
   const all = mine.data ?? []
-  const upcoming = all
-    .filter((job) => new Date(job.endsAt).getTime() >= now)
-    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-  const past = all
-    .filter((job) => new Date(job.endsAt).getTime() < now)
-    .sort((a, b) => b.startsAt.localeCompare(a.startsAt))
+  const upcoming = all.filter((job) => isActive(job, now)).sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+  const past = all.filter((job) => !isActive(job, now)).sort((a, b) => b.startsAt.localeCompare(a.startsAt))
   const canTake = openJobs.filter((job) => job.canAccept).length
   // Mở sẵn mục "Chờ nhận" khi có lịch nhận được
   const tab: Tab = picked ?? (canTake > 0 ? 'open' : 'upcoming')
@@ -76,7 +76,7 @@ export function TechJobsScreen() {
       ) : shown.length === 0 ? (
         <StateView
           icon="calendar-clear-outline"
-          title={tab === 'upcoming' ? 'Chưa có lịch sắp tới' : 'Chưa có lịch đã qua'}
+          title={tab === 'upcoming' ? 'Chưa có lịch nào cần làm' : 'Chưa có lịch đã qua'}
           description={tab === 'upcoming' ? 'Nhận lịch ở mục "Chờ nhận" thì lịch hiện ở đây.' : undefined}
         />
       ) : (

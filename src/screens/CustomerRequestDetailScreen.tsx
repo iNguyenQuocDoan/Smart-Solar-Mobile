@@ -1,7 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
-import { useBookingMutation, useCancelBooking, useCustomerRequest, useSurveySlots } from '@/hooks/queries'
+import {
+  useBookingMutation,
+  useCancelBooking,
+  useCustomerRequest,
+  useSurveySlots,
+  useWithdrawRequest,
+} from '@/hooks/queries'
 import {
   addDays,
   formatAppointment,
@@ -11,7 +17,7 @@ import {
   shortCode,
   todayVn,
 } from '@/lib/format'
-import { canBook, coverageText, customerStatus, historyStatusLabel } from '@/lib/status'
+import { canBook, canWithdraw, coverageText, customerStatus, historyStatusLabel, isClosedRequest } from '@/lib/status'
 import {
   Badge,
   Button,
@@ -148,6 +154,7 @@ export function CustomerRequestDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const query = useCustomerRequest(id ?? '')
   const cancel = useCancelBooking(id ?? '')
+  const withdraw = useWithdrawRequest(id ?? '')
   const [rescheduling, setRescheduling] = useState(false)
   const detail = query.data
   const request = detail?.request
@@ -158,6 +165,21 @@ export function CustomerRequestDetailScreen() {
       { text: 'Giữ lịch', style: 'cancel' },
       { text: 'Huỷ lịch', style: 'destructive', onPress: () => void cancel.mutateAsync().catch(() => undefined) },
     ])
+  }
+
+  function confirmWithdraw() {
+    Alert.alert(
+      'Rút yêu cầu khảo sát?',
+      'Yêu cầu sẽ đóng hẳn, báo giá chưa trả lời cũng huỷ theo. Muốn khảo sát lại, bạn gửi đánh giá mới.',
+      [
+        { text: 'Giữ yêu cầu', style: 'cancel' },
+        {
+          text: 'Rút yêu cầu',
+          style: 'destructive',
+          onPress: () => void withdraw.mutateAsync().catch(() => undefined),
+        },
+      ],
+    )
   }
 
   return (
@@ -173,7 +195,13 @@ export function CustomerRequestDetailScreen() {
             <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(request.surveyRequestId)}</Text>
           </View>
           <PageHeader title={request.propertyName || 'Công trình chưa đặt tên'} />
-          {canBook(request) ? (
+          {isClosedRequest(request) ? (
+            <StateView
+              title="Yêu cầu này đã đóng"
+              description="Yêu cầu đã đóng không mở lại được. Muốn khảo sát lại, gửi đánh giá mới cho công trình."
+              action={<Button label="Gửi đánh giá mới" onPress={() => router.push('/customer/assessment')} compact />}
+            />
+          ) : canBook(request) ? (
             <BookingForm
               requestId={request.surveyRequestId}
               propertySiteId={request.propertySiteId}
@@ -227,6 +255,22 @@ export function CustomerRequestDetailScreen() {
               description="Liên hệ bộ phận kinh doanh nếu bạn cần khảo sát lại."
             />
           )}
+          {canWithdraw(request) ? (
+            <View style={styles.actions}>
+              <Button
+                label="Rút yêu cầu"
+                icon="close-circle-outline"
+                variant="danger"
+                onPress={confirmWithdraw}
+                loading={withdraw.isPending}
+              />
+              {withdraw.error ? (
+                <Text accessibilityRole="alert" style={[styles.error, { color: theme.danger }]}>
+                  {withdraw.error.message}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
           {detail.history.length > (request.appointment ? 1 : 0) ? (
             <Panel>
               <SectionTitle>Các lần đặt giờ</SectionTitle>

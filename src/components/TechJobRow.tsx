@@ -31,9 +31,13 @@ export function TechJobRow({ job, last = false }: { job: TechnicianAppointment; 
           {job.propertyName}
         </Text>
         <Text style={[styles.address, { color: theme.textMuted }]} numberOfLines={1}>
-          {[job.district, job.province].filter(Boolean).join(', ')}
+          {[job.communeName ?? job.ward ?? job.district, job.province].filter(Boolean).join(', ')}
         </Text>
-        <Badge tone={status.tone}>{status.label}</Badge>
+        {job.isOverdue ? (
+          <Badge tone="danger">Quá giờ, chưa khảo sát</Badge>
+        ) : (
+          <Badge tone={status.tone}>{status.label}</Badge>
+        )}
       </View>
       <Ionicons name="chevron-forward" size={20} color={theme.textSubtle} />
     </Pressable>

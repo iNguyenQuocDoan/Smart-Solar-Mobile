@@ -74,6 +74,19 @@ export function useCancelBooking(id: string) {
   })
 }
 
+export function useWithdrawRequest(id: string) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: () => customerService.withdraw(id),
+    onSuccess: async () => {
+      await Promise.all([
+        client.invalidateQueries({ queryKey: keys.customerRequests }),
+        client.invalidateQueries({ queryKey: keys.customerRequest(id) }),
+      ])
+    },
+  })
+}
+
 /** Lịch mới khách đặt hiện ra mà không cần kéo xuống tải lại */
 const JOBS_REFRESH_MS = 60_000
 

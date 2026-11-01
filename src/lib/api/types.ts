@@ -35,6 +35,7 @@ export type CustomerRequest = {
   preSurveyId: string
   propertySiteId: string
   propertyName: string
+  /** PENDING, SCHEDULED, COMPLETED, CANCELLED (khách rút), CLOSED (kinh doanh đóng) */
   status: string
   submittedAt: string
   scheduledAt: string | null
@@ -90,6 +91,11 @@ export type TechnicianAppointment = {
   province: string
   district: string | null
   assignedAt: string | null
+  surveyRequestId: string | null
+  ward: string | null
+  communeName: string | null
+  /** Đã qua giờ kết thúc mà chưa khảo sát xong */
+  isOverdue: boolean
 }
 
 /** Lịch đang chờ người nhận trong khu vực; địa chỉ cụ thể và liên hệ của khách chỉ có sau khi nhận */
@@ -156,6 +162,7 @@ export type TechnicianJob = {
     hasObstruction: boolean | null
     obstacleCount: number
   }
+  isOverdue: boolean
 }
 
 export type ScheduleAppointment = {
