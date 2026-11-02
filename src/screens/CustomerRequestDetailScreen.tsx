@@ -1,13 +1,16 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native'
+import { DispatchOutcome, DispatchRequestForm, DispatchStatusPanel } from '@/components/CustomerDispatch'
 import {
   useBookingMutation,
   useCancelBooking,
+  useCustomerDispatch,
   useCustomerRequest,
   useSurveySlots,
   useWithdrawRequest,
 } from '@/hooks/queries'
+import { ApiError } from '@/lib/api/client'
 import {
   addDays,
   formatAppointment,
@@ -17,7 +20,17 @@ import {
   shortCode,
   todayVn,
 } from '@/lib/format'
-import { canBook, canWithdraw, coverageText, customerStatus, historyStatusLabel, isClosedRequest } from '@/lib/status'
+import {
+  DISPATCHABLE_CODES,
+  canBook,
+  canWithdraw,
+  coverageText,
+  customerDispatchStatus,
+  customerStatus,
+  historyStatusLabel,
+  isActiveDispatch,
+  isClosedRequest,
+} from '@/lib/status'
 import {
   Badge,
   Button,
@@ -38,11 +51,14 @@ function BookingForm({
   propertySiteId,
   mode,
   onDone,
+  onRequestDispatch,
 }: {
   requestId: string
   propertySiteId: string
   mode: 'book' | 'reschedule'
   onDone: () => void
+  /** Chỉ khi đặt mới: khu vực không có người nhận thì nhờ Smart Solar xếp kỹ thuật viên */
+  onRequestDispatch?: () => void
 }) {
   const theme = useAppTheme()
   const [date, setDate] = useState(initialBookingDate)
@@ -53,6 +69,17 @@ function BookingForm({
   const mutation = useBookingMutation(requestId, mode)
   const firstDate = todayVn()
   const lastDate = addDays(firstDate, 29)
+  // Đặt giờ bị từ chối vì khu vực không có người nhận: mời khách nhờ xếp kỹ thuật viên
+  const bookingUncovered = mutation.error instanceof ApiError && DISPATCHABLE_CODES.includes(mutation.error.code ?? '')
+  const dispatchButton = onRequestDispatch ? (
+    <Button
+      label="Nhờ xếp kỹ thuật viên"
+      icon="people-outline"
+      variant="secondary"
+      onPress={onRequestDispatch}
+      compact
+    />
+  ) : null
 
   function changeDate(next: string) {
     setSelected('')
@@ -119,6 +146,7 @@ function BookingForm({
             icon="calendar-clear-outline"
             title="Ngày này không còn giờ trống"
             description={coverageText(slots.data?.coverageStatus) ?? 'Chọn ngày khác để tiếp tục.'}
+            action={slots.data?.dispatchAvailable ? dispatchButton : undefined}
           />
         )
       ) : null}
@@ -135,6 +163,7 @@ function BookingForm({
           {mutation.error.message}
         </Text>
       ) : null}
+      {bookingUncovered ? dispatchButton : null}
       <View style={styles.actions}>
         {mode === 'reschedule' ? <Button label="Giữ lịch cũ" variant="quiet" onPress={onDone} compact /> : null}
         <Button
@@ -156,9 +185,24 @@ export function CustomerRequestDetailScreen() {
   const cancel = useCancelBooking(id ?? '')
   const withdraw = useWithdrawRequest(id ?? '')
   const [rescheduling, setRescheduling] = useState(false)
+  const [dispatching, setDispatching] = useState(false)
   const detail = query.data
   const request = detail?.request
-  const status = request ? customerStatus(request) : null
+  // Chưa có lịch thì xem khách có đang nhờ Smart Solar xếp kỹ thuật viên không
+  const bookable = request ? canBook(request) : false
+  const dispatch = useCustomerDispatch(id ?? '', bookable)
+  const activeDispatch = bookable && dispatch.data && isActiveDispatch(dispatch.data.status) ? dispatch.data : null
+  // Nhân viên phân công thẳng: yêu cầu điều phối sang ASSIGNED trước khi yêu cầu khảo sát kịp tải lại lịch mới
+  const assignedNow = bookable && dispatch.data?.status === 'ASSIGNED'
+  const { refetch } = query
+  useEffect(() => {
+    if (assignedNow) void refetch()
+  }, [assignedNow, refetch])
+  const status = request
+    ? activeDispatch
+      ? customerDispatchStatus(activeDispatch.status)
+      : customerStatus(request)
+    : null
 
   function confirmCancel() {
     Alert.alert('Huỷ lịch khảo sát?', 'Giờ đang giữ sẽ được trả lại cho hệ thống.', [
@@ -202,12 +246,28 @@ export function CustomerRequestDetailScreen() {
               action={<Button label="Gửi đánh giá mới" onPress={() => router.push('/customer/assessment')} compact />}
             />
           ) : canBook(request) ? (
-            <BookingForm
-              requestId={request.surveyRequestId}
-              propertySiteId={request.propertySiteId}
-              mode="book"
-              onDone={() => setRescheduling(false)}
-            />
+            dispatch.isPending || (assignedNow && query.isFetching) ? (
+              <QueryState loading error={null} onRetry={() => void dispatch.refetch()} />
+            ) : activeDispatch ? (
+              <DispatchStatusPanel requestId={request.surveyRequestId} dispatch={activeDispatch} />
+            ) : dispatching ? (
+              <DispatchRequestForm
+                requestId={request.surveyRequestId}
+                onCancel={() => setDispatching(false)}
+                onDone={() => setDispatching(false)}
+              />
+            ) : (
+              <>
+                {dispatch.data ? <DispatchOutcome dispatch={dispatch.data} /> : null}
+                <BookingForm
+                  requestId={request.surveyRequestId}
+                  propertySiteId={request.propertySiteId}
+                  mode="book"
+                  onDone={() => setRescheduling(false)}
+                  onRequestDispatch={() => setDispatching(true)}
+                />
+              </>
+            )
           ) : request.appointment ? (
             rescheduling && request.appointment.canCustomerChange ? (
               <BookingForm

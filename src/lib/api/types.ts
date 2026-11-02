@@ -270,3 +270,77 @@ export type AssessmentDraft = {
     surfaceMaterial: string
   }
 }
+
+export type PreferredWindow = { startsAt: string; endsAt: string }
+
+/** Đề xuất giờ khảo sát Smart Solar gửi khi khu vực chưa có kỹ thuật viên nhận lịch */
+export type CustomerProposal = {
+  proposalId: string
+  startsAt: string
+  endsAt: string
+  technicianName: string
+  /** PROPOSED | ACCEPTED | DECLINED | EXPIRED | WITHDRAWN | FAILED */
+  status: string
+  expiresAt: string
+  respondedAt: string | null
+  /** Gửi lại làm expectedRevision khi trả lời */
+  revision: number
+}
+
+/** Yêu cầu nhờ Smart Solar xếp kỹ thuật viên. `status`: OPEN | PROPOSAL_PENDING | ASSIGNED | UNSERVICEABLE | CLOSED */
+export type CustomerDispatch = {
+  dispatchRequestId: string
+  surveyRequestId: string
+  status: string
+  reason: string
+  createdAt: string
+  /** Hạn nhân viên phản hồi */
+  reviewDueAt: string
+  customerNote: string | null
+  preferredWindows: PreferredWindow[]
+  liveProposal: CustomerProposal | null
+  latestProposal: CustomerProposal | null
+  /** ASSIGNED | UNSERVICEABLE | CLOSED_BY_STAFF | CANCELLED_BY_CUSTOMER */
+  resolution: string | null
+  resolutionReason: string | null
+  resolvedAt: string | null
+  appointmentId: string | null
+  revision: number
+  created: boolean
+}
+
+/** Địa điểm của khách (GET /customers/me/sites) */
+export type CustomerSite = {
+  siteId: string
+  name: string
+  province: string | null
+  district: string | null
+  ward: string | null
+  streetLine: string | null
+  provinceCode: string | null
+  communeCode: string | null
+  communeName: string | null
+  latitude: number | null
+  longitude: number | null
+  /** Tên enum in hoa: ROOFTOP, GROUND... Địa điểm khai không chọn mặt lắp thì null */
+  installationSurfaceType: string | null
+  surfaceMaterial: string | null
+  preSurveyCount: number
+}
+
+/** Bản đánh giá của khách (GET /customers/me/pre-surveys). `status`: DRAFT | SUBMITTED */
+export type CustomerDraftItem = {
+  preSurveyId: string
+  propertySiteId: string
+  siteName: string
+  status: string
+  revision: number
+  totalAreaM2: number | null
+  usableAreaM2: number | null
+  selectedSimulationId: string | null
+  surveyRequestId: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type ListPage<T> = { items: T[]; page: number; pageSize: number; totalItems: number; totalPages: number }

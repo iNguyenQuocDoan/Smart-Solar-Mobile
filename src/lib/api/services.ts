@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from '@/lib/api/client'
+import { ApiError, apiGet, apiPost, apiPut } from '@/lib/api/client'
 import type {
   AcceptResult,
   AuthTokens,
@@ -6,9 +6,14 @@ import type {
   AssessmentSurface,
   Commune,
   CustomerAppointment,
+  CustomerDispatch,
+  CustomerDraftItem,
   CustomerRequest,
+  CustomerSite,
   CustomerRequestDetail,
+  ListPage,
   OpenAppointment,
+  PreferredWindow,
   Product,
   ProductPage,
   ReleaseResult,
@@ -45,6 +50,35 @@ export const customerService = {
     }),
   /** Rút hẳn yêu cầu, không mở lại được. Còn lịch đang hẹn hoặc đã có hợp đồng thì bị từ chối (409) */
   withdraw: (id: string) => apiPost(`/customers/me/survey-requests/${encode(id)}/withdraw`, { reason: null }),
+  /** Yêu cầu xếp kỹ thuật viên mới nhất; chưa từng gửi thì null */
+  getDispatch: async (id: string) => {
+    try {
+      return await apiGet<CustomerDispatch>(`/customers/me/survey-requests/${encode(id)}/dispatch-request`)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null
+      throw error
+    }
+  },
+  /** Khu vực chưa có kỹ thuật viên nhận lịch: khách gửi tối đa 5 khung giờ tiện */
+  createDispatch: (id: string, preferredWindows: PreferredWindow[], note: string) =>
+    apiPost<CustomerDispatch>(`/customers/me/survey-requests/${encode(id)}/dispatch-request`, {
+      preferredWindows,
+      note: note.trim() || null,
+    }),
+  acceptProposal: (id: string, proposalId: string, revision: number) =>
+    apiPost<CustomerDispatch>(
+      `/customers/me/survey-requests/${encode(id)}/dispatch-request/proposals/${encode(proposalId)}/accept`,
+      { expectedRevision: revision },
+    ),
+  declineProposal: (id: string, proposalId: string, revision: number) =>
+    apiPost<CustomerDispatch>(
+      `/customers/me/survey-requests/${encode(id)}/dispatch-request/proposals/${encode(proposalId)}/decline`,
+      { reason: null, expectedRevision: revision },
+    ),
+  cancelDispatch: (id: string) =>
+    apiPost<CustomerDispatch>(`/customers/me/survey-requests/${encode(id)}/dispatch-request/cancel`, {
+      reason: null,
+    }),
 }
 
 export const technicianService = {
@@ -71,6 +105,13 @@ export const productService = {
 }
 
 export const assessmentService = {
+  /** Địa điểm đã khai, đọc được ở mọi máy */
+  listSites: () => apiGet<ListPage<CustomerSite>>('/customers/me/sites?page=1&pageSize=100'),
+  /** Bản nháp chưa gửi, sửa gần nhất trước */
+  listDrafts: () =>
+    apiGet<ListPage<CustomerDraftItem>>(
+      '/customers/me/pre-surveys?status=DRAFT&sortBy=updatedAt&sortDirection=desc&page=1&pageSize=20',
+    ),
   createProfile: (body: {
     customerType: 1 | 2
     companyName: string | null

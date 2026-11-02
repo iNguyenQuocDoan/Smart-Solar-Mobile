@@ -135,3 +135,43 @@ export function assignmentSourceLabel(source: string | null | undefined) {
 export function surfaceLabel(value: string | null | undefined) {
   return value ? (SURFACE_NAMES[value.toUpperCase()] ?? value) : '—'
 }
+
+// Điều phối: khu vực chưa có kỹ thuật viên nhận lịch thì khách nhờ Smart Solar xếp người
+
+/** Còn đang xử lý: chờ nhân viên hoặc chờ khách trả lời đề xuất */
+export function isActiveDispatch(status: string | null | undefined) {
+  return status === 'OPEN' || status === 'PROPOSAL_PENDING'
+}
+
+/** Có đề xuất là việc của khách nên tô đỏ */
+export function customerDispatchStatus(status: string): Meta {
+  if (status === 'PROPOSAL_PENDING') return { label: 'Chờ bạn xác nhận giờ', tone: 'danger' }
+  return { label: 'Đang xếp kỹ thuật viên', tone: 'info' }
+}
+
+/** Mã lỗi đặt giờ cho biết khu vực không có người nhận, nhờ xếp kỹ thuật viên được */
+export const DISPATCHABLE_CODES = [
+  'NO_ZONE_COVERAGE',
+  'ZONE_NOT_SERVICEABLE',
+  'NO_ZONE_TECHNICIAN',
+  'NO_AVAILABLE_TECHNICIAN',
+  'SCHEDULE_CONFLICT',
+]
+
+/** Khung giờ khách chọn khi nhờ xếp kỹ thuật viên (giờ Việt Nam) */
+export const DISPATCH_SESSIONS = [
+  { value: 'morning', label: 'Sáng', from: '08:00', to: '12:00' },
+  { value: 'afternoon', label: 'Chiều', from: '13:00', to: '17:00' },
+  { value: 'day', label: 'Cả ngày', from: '08:00', to: '17:00' },
+] as const
+
+export type DispatchSession = (typeof DISPATCH_SESSIONS)[number]['value']
+
+/** Đề xuất trước đó ra sao, để khách biết vì sao lại đang chờ */
+export function previousProposalText(status: string) {
+  if (status === 'DECLINED') return 'Bạn đã không đồng ý giờ đề xuất trước. Smart Solar sẽ gửi giờ khác.'
+  if (status === 'EXPIRED') return 'Đề xuất trước đã hết hạn trả lời. Smart Solar sẽ gửi giờ khác.'
+  if (status === 'FAILED') return 'Giờ đề xuất trước không còn nhận được. Smart Solar sẽ gửi giờ khác.'
+  if (status === 'WITHDRAWN') return 'Smart Solar đã rút đề xuất trước và sẽ gửi giờ khác.'
+  return null
+}

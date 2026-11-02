@@ -13,11 +13,18 @@ import {
   SectionTitle,
   StateView,
 } from '@/components/ui'
+import { SavedAssessments, draftSiteOf } from '@/components/SavedAssessments'
 import { useAuth } from '@/contexts/AuthContext'
 import { keys, useHcmCommunes } from '@/hooks/queries'
 import { ApiError } from '@/lib/api/client'
 import { HCM_PROVINCE, assessmentService } from '@/lib/api/services'
-import type { AssessmentDraft, AssessmentObstacle, AssessmentSurface } from '@/lib/api/types'
+import type {
+  AssessmentDraft,
+  AssessmentObstacle,
+  AssessmentSurface,
+  CustomerDraftItem,
+  CustomerSite,
+} from '@/lib/api/types'
 import {
   clearAssessmentDraft,
   hasCustomerProfile,
@@ -378,6 +385,26 @@ export function AssessmentScreen() {
     const usableAreaM2 = Math.round(Math.max(0, totalAreaM2 - obstacleArea(obstacles, width, length)) * 100) / 100
     return { width, length, tilt, obstacles, totalAreaM2, usableAreaM2 }
   }, [surface])
+
+  /** Ghi bản nháp chọn từ tài khoản vào máy rồi mở lại màn (restore tự tạo bản nháp khi chỉ có địa điểm) */
+  async function reopenWith(next: AssessmentDraft) {
+    await saveAssessmentDraft(account, next)
+    // Đã có địa điểm hoặc bản nháp là đã có hồ sơ khách hàng
+    await rememberCustomerProfile(account)
+    setErrors({})
+    setFormError('')
+    setLoading(true)
+    setReloadKey((value) => value + 1)
+  }
+
+  function openSavedDraft(item: CustomerDraftItem, siteItem: CustomerSite | undefined) {
+    void reopenWith({ propertySiteId: item.propertySiteId, preSurveyId: item.preSurveyId, site: draftSiteOf(siteItem) })
+  }
+
+  /** Đánh giá lại địa điểm cũ: bản nháp mới cho địa điểm đó, không tạo địa điểm mới */
+  function pickSavedSite(item: CustomerSite) {
+    void reopenWith({ propertySiteId: item.siteId, site: draftSiteOf(item) })
+  }
 
   function updateProfile(patch: Partial<ProfileForm>) {
     setProfile((value) => ({ ...value, ...patch }))
@@ -881,6 +908,9 @@ export function AssessmentScreen() {
       </View>
       <PageHeader title="Đánh giá sơ bộ" />
       <StepBar current={step} firstStep={firstStep} />
+      {step <= 1 ? (
+        <SavedAssessments currentDraftId={draft?.preSurveyId} onOpenDraft={openSavedDraft} onUseSite={pickSavedSite} />
+      ) : null}
       {content}
       {formError ? (
         <Text accessibilityRole="alert" style={[styles.error, { color: theme.danger }]}>

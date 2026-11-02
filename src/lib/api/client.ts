@@ -46,6 +46,20 @@ const messages: Record<string, string> = {
   SURVEY_REQUEST_APPOINTMENT_OPEN: 'Yêu cầu còn lịch khảo sát đang hẹn. Huỷ lịch trước rồi rút yêu cầu.',
   SURVEY_REQUEST_CLOSURE_CONFLICT: 'Báo giá của yêu cầu vừa thay đổi. Hãy tải lại rồi thử lần nữa.',
   SCHEMA_NOT_READY: 'Hệ thống đang cập nhật. Vui lòng thử lại sau ít phút.',
+  NO_ZONE_COVERAGE: 'Phường, xã của công trình chưa có kỹ thuật viên nhận lịch. Hãy nhờ Smart Solar xếp kỹ thuật viên.',
+  ZONE_NOT_SERVICEABLE: 'Khu vực của công trình đang tạm ngừng nhận lịch. Hãy nhờ Smart Solar xếp kỹ thuật viên.',
+  NO_ZONE_TECHNICIAN: 'Khu vực của công trình chưa có kỹ thuật viên. Hãy nhờ Smart Solar xếp kỹ thuật viên.',
+  NO_AVAILABLE_TECHNICIAN:
+    'Kỹ thuật viên của khu vực đã kín lịch. Chọn ngày khác hoặc nhờ Smart Solar xếp kỹ thuật viên.',
+  SCHEDULE_CONFLICT: 'Giờ này kỹ thuật viên của khu vực đã kín lịch. Chọn giờ khác.',
+  DISPATCH_REQUEST_OPEN:
+    'Yêu cầu đang chờ Smart Solar xếp kỹ thuật viên. Trả lời đề xuất hoặc huỷ yêu cầu xếp lịch trước.',
+  DISPATCH_NOT_NEEDED: 'Khu vực của công trình đã có giờ trống vào các khung bạn chọn. Hãy đặt giờ trực tiếp.',
+  DISPATCH_INVALID_STATE: 'Yêu cầu xếp kỹ thuật viên vừa đổi trạng thái. Hãy tải lại để xem.',
+  DISPATCH_STALE_REVISION: 'Yêu cầu vừa được cập nhật. Hãy tải lại rồi thử lần nữa.',
+  PROPOSAL_NOT_PENDING: 'Đề xuất này đã được trả lời hoặc không còn hiệu lực.',
+  PROPOSAL_EXPIRED: 'Đề xuất đã hết hạn trả lời. Smart Solar sẽ gửi đề xuất khác.',
+  INVALID_BOOKING_TIME: 'Giờ này không còn đặt được. Hãy chọn giờ khác.',
 }
 
 const statusMessages: Record<number, string> = {

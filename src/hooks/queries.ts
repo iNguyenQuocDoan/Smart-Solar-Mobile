@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { assessmentService, customerService, productService, technicianService } from '@/lib/api/services'
+import type { CustomerProposal, PreferredWindow } from '@/lib/api/types'
 
 export const keys = {
   customerRequests: ['customer-requests'] as const,
   customerRequest: (id: string) => ['customer-requests', id] as const,
+  dispatch: (id: string) => ['customer-requests', id, 'dispatch'] as const,
+  mySites: ['assessment', 'sites'] as const,
+  myDrafts: ['assessment', 'drafts'] as const,
   slots: (siteId: string, date: string) => ['survey-slots', siteId, date] as const,
   /** Gốc chung của việc chờ nhận, việc của tôi và lịch ngày */
   techJobs: ['technician-jobs'] as const,
@@ -85,6 +89,60 @@ export function useWithdrawRequest(id: string) {
       ])
     },
   })
+}
+
+/**
+ * Địa điểm và bản nháp lưu trên tài khoản, để mở tiếp việc làm ở máy khác. Màn đánh giá tạo địa điểm, bản nháp
+ * mà không qua cache nên mỗi lần hiện danh sách đều tải lại
+ */
+export function useMySites(enabled: boolean) {
+  return useQuery({ queryKey: keys.mySites, queryFn: assessmentService.listSites, enabled, staleTime: 0 })
+}
+
+export function useMyDrafts(enabled: boolean) {
+  return useQuery({ queryKey: keys.myDrafts, queryFn: assessmentService.listDrafts, enabled, staleTime: 0 })
+}
+
+/** Yêu cầu xếp kỹ thuật viên của khách; đề xuất có hạn trả lời nên tải lại mỗi phút */
+export function useCustomerDispatch(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: keys.dispatch(id),
+    queryFn: () => customerService.getDispatch(id),
+    enabled: Boolean(id) && enabled,
+    refetchInterval: 60_000,
+  })
+}
+
+/** Mọi thao tác điều phối (kể cả lỗi) tải lại yêu cầu vì nhân viên cũng đang sửa */
+function useDispatchMutation<Vars>(id: string, action: (vars: Vars) => Promise<unknown>) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: action,
+    onSettled: async () => {
+      await Promise.all([
+        client.invalidateQueries({ queryKey: keys.customerRequests }),
+        client.invalidateQueries({ queryKey: keys.customerRequest(id) }),
+      ])
+    },
+  })
+}
+
+export function useCreateDispatch(id: string) {
+  return useDispatchMutation(id, ({ windows, note }: { windows: PreferredWindow[]; note: string }) =>
+    customerService.createDispatch(id, windows, note),
+  )
+}
+
+export function useAnswerProposal(id: string) {
+  return useDispatchMutation(id, ({ proposal, accept }: { proposal: CustomerProposal; accept: boolean }) =>
+    accept
+      ? customerService.acceptProposal(id, proposal.proposalId, proposal.revision)
+      : customerService.declineProposal(id, proposal.proposalId, proposal.revision),
+  )
+}
+
+export function useCancelDispatch(id: string) {
+  return useDispatchMutation(id, () => customerService.cancelDispatch(id))
 }
 
 /** Lịch mới khách đặt hiện ra mà không cần kéo xuống tải lại */
