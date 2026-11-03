@@ -204,8 +204,20 @@ export type Product = {
   widthMm?: number | null
   heightMm?: number | null
   warrantyMonth?: number | null
+  /** Thông số tự do; inverter có ratedAcPowerW, maxDcInputPowerW, maxDcVoltageV, mpptCount, efficiencyPercent, phase */
+  spec?: unknown
   status?: string | null
+  /** Cũ: link ảnh chính, giữ cho dữ liệu chưa có `images` */
   imageUrl?: string | null
+  images?: ProductImage[] | null
+}
+
+export type ProductImage = {
+  id?: string
+  url?: string | null
+  altText?: string | null
+  sortOrder?: number
+  isPrimary?: boolean
 }
 
 export type ProductPage = {

@@ -4,9 +4,25 @@ import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useState } from 'react'
 import { useProducts } from '@/hooks/queries'
 import { formatMoney } from '@/lib/format'
+import { primaryImageUrl } from '@/lib/product'
 import type { Product } from '@/lib/api/types'
 import { PageHeader, QueryState, Screen, StateView } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
+
+/** Ảnh chính thu nhỏ; chưa có ảnh thì hiện biểu tượng */
+function ProductThumb({ product }: { product: Product }) {
+  const theme = useAppTheme()
+  const image = primaryImageUrl(product)
+  return (
+    <View style={[styles.imageBox, { backgroundColor: theme.surfaceMuted }]}>
+      {image ? (
+        <Image source={{ uri: image }} style={styles.image} resizeMode="contain" />
+      ) : (
+        <Ionicons name="hardware-chip-outline" size={26} color={theme.textSubtle} />
+      )}
+    </View>
+  )
+}
 
 export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
   const theme = useAppTheme()
@@ -67,13 +83,7 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
                 index === items.length - 1 && styles.lastRow,
               ]}
             >
-              <View style={[styles.imageBox, { backgroundColor: theme.surfaceMuted }]}>
-                {product.imageUrl ? (
-                  <Image source={{ uri: product.imageUrl }} style={styles.image} resizeMode="contain" />
-                ) : (
-                  <Ionicons name="hardware-chip-outline" size={26} color={theme.textSubtle} />
-                )}
-              </View>
+              <ProductThumb product={product} />
               <View style={styles.copy}>
                 <Text style={[styles.name, { color: theme.text }]} numberOfLines={2}>
                   {product.name || 'Sản phẩm chưa đặt tên'}
