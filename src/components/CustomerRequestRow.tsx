@@ -1,16 +1,25 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter, type Href } from 'expo-router'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import type { CustomerRequest } from '@/lib/api/types'
-import { customerStatus } from '@/lib/status'
-import { formatAppointment, shortCode } from '@/lib/format'
+import type { CustomerDispatch, CustomerRequest } from '@/lib/api/types'
+import { customerRequestStatus } from '@/lib/status'
+import { formatAppointment, formatMoment, shortCode } from '@/lib/format'
 import { Badge } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
-export function CustomerRequestRow({ request, last = false }: { request: CustomerRequest; last?: boolean }) {
+export function CustomerRequestRow({
+  request,
+  dispatch,
+  last = false,
+}: {
+  request: CustomerRequest
+  dispatch?: CustomerDispatch
+  last?: boolean
+}) {
   const theme = useAppTheme()
   const router = useRouter()
-  const status = customerStatus(request)
+  const status = customerRequestStatus(request, dispatch)
+  const live = dispatch?.status === 'PROPOSAL_PENDING' ? dispatch.liveProposal : null
   return (
     <Pressable
       accessibilityRole="button"
@@ -32,6 +41,11 @@ export function CustomerRequestRow({ request, last = false }: { request: Custome
         {request.appointment ? (
           <Text style={[styles.time, { color: theme.text }]}>
             {formatAppointment(request.appointment.startsAt, request.appointment.endsAt)}
+          </Text>
+        ) : null}
+        {live ? (
+          <Text style={[styles.time, { color: theme.text }]}>
+            Đề xuất {formatAppointment(live.startsAt, live.endsAt)}, trả lời trước {formatMoment(live.expiresAt)}
           </Text>
         ) : null}
         <Badge tone={status.tone}>{status.label}</Badge>

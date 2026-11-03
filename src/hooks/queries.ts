@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
 import { assessmentService, customerService, productService, technicianService } from '@/lib/api/services'
-import type { CustomerProposal, PreferredWindow } from '@/lib/api/types'
+import type { CustomerDispatch, CustomerProposal, CustomerRequest, PreferredWindow } from '@/lib/api/types'
+import { canBook, isActiveDispatch } from '@/lib/status'
 
 export const keys = {
   customerRequests: ['customer-requests'] as const,
@@ -110,6 +111,29 @@ export function useCustomerDispatch(id: string, enabled: boolean) {
     queryFn: () => customerService.getDispatch(id),
     enabled: Boolean(id) && enabled,
     refetchInterval: 60_000,
+  })
+}
+
+// Hàm cố định để useQueries chỉ dựng lại Map khi dữ liệu đổi
+function byRequest(results: UseQueryResult<CustomerDispatch | null>[]) {
+  const dispatches = new Map<string, CustomerDispatch>()
+  for (const r of results) if (r.data) dispatches.set(r.data.surveyRequestId, r.data)
+  return { dispatches, pending: results.some((r) => r.isPending) }
+}
+
+/**
+ * Yêu cầu xếp kỹ thuật viên của các yêu cầu chưa có lịch, cho danh sách và số đỏ (danh sách chưa có trạng thái này).
+ * Dùng chung cache với màn chi tiết; chỉ tự tải lại khi đang chờ nhân viên hoặc chờ khách trả lời
+ */
+export function useCustomerDispatches(requests: CustomerRequest[] | undefined) {
+  return useQueries({
+    queries: (requests ?? []).filter(canBook).map((r) => ({
+      queryKey: keys.dispatch(r.surveyRequestId),
+      queryFn: () => customerService.getDispatch(r.surveyRequestId),
+      refetchInterval: (query: { state: { data?: CustomerDispatch | null } }) =>
+        isActiveDispatch(query.state.data?.status) ? 60_000 : false,
+    })),
+    combine: byRequest,
   })
 }
 

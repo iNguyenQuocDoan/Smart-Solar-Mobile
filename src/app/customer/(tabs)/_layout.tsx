@@ -1,11 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { Tabs, usePathname } from 'expo-router'
-import type { ComponentProps } from 'react'
+import { useMemo, type ComponentProps } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useCustomerRequests } from '@/hooks/queries'
+import { useCustomerDispatches, useCustomerRequests } from '@/hooks/queries'
 import { useTabAlert } from '@/hooks/tabAlert'
-import type { CustomerRequest } from '@/lib/api/types'
-import { canBook } from '@/lib/status'
+import type { CustomerDispatch, CustomerRequest } from '@/lib/api/types'
+import { customerRequestTodo } from '@/lib/status'
 import { useAppTheme } from '@/theme/theme'
 
 type Icon = ComponentProps<typeof Ionicons>['name']
@@ -15,12 +15,17 @@ function icon(name: Icon) {
   }
 }
 
-// Số đỏ trên tab Yêu cầu: yêu cầu chưa đặt giờ, cộng yêu cầu vừa đổi (kỹ thuật viên nhận lịch, lịch bị huỷ) mà chưa xem
+// Số đỏ trên tab Yêu cầu: yêu cầu chưa đặt giờ hoặc có giờ đề xuất chờ trả lời, cộng yêu cầu vừa đổi
+// (kỹ thuật viên nhận lịch, lịch bị huỷ) mà chưa xem
+type RequestItem = { request: CustomerRequest; dispatch: CustomerDispatch | undefined }
 const requestAlert = {
-  key: (r: CustomerRequest) => r.surveyRequestId,
-  sig: (r: CustomerRequest) =>
-    [r.status, r.appointment?.appointmentId, r.appointment?.status, r.appointment?.acceptanceStatus].join('|'),
-  todo: canBook,
+  key: ({ request: r }: RequestItem) => r.surveyRequestId,
+  // Phần điều phối chỉ thêm khi có, để dấu "đã xem" của yêu cầu không nhờ xếp kỹ thuật viên vẫn giữ nguyên
+  sig: ({ request: r, dispatch: d }: RequestItem) => {
+    const base = [r.status, r.appointment?.appointmentId, r.appointment?.status, r.appointment?.acceptanceStatus]
+    return (d ? [...base, d.status, d.liveProposal?.proposalId] : base).join('|')
+  },
+  todo: ({ request, dispatch }: RequestItem) => customerRequestTodo(request, dispatch),
 }
 
 export default function CustomerTabs() {
@@ -28,8 +33,16 @@ export default function CustomerTabs() {
   const insets = useSafeAreaInsets()
   const pathname = usePathname()
   const requests = useCustomerRequests()
+  const { dispatches, pending } = useCustomerDispatches(requests.data)
+  const items = useMemo(
+    () =>
+      requests.data && !pending
+        ? requests.data.map((request) => ({ request, dispatch: dispatches.get(request.surveyRequestId) }))
+        : undefined,
+    [requests.data, dispatches, pending],
+  )
   const viewingRequests = pathname === '/customer/requests' || pathname.startsWith('/customer/request/')
-  const alert = useTabAlert('customer-requests', requests.data, viewingRequests, requestAlert)
+  const alert = useTabAlert('customer-requests', items, viewingRequests, requestAlert)
   return (
     <Tabs
       backBehavior="history"

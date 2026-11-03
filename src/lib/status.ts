@@ -1,4 +1,4 @@
-import type { CustomerAppointment, CustomerRequest } from '@/lib/api/types'
+import type { CustomerAppointment, CustomerDispatch, CustomerRequest } from '@/lib/api/types'
 
 export type Tone = 'neutral' | 'danger' | 'warning' | 'success' | 'info'
 
@@ -147,6 +147,21 @@ export function isActiveDispatch(status: string | null | undefined) {
 export function customerDispatchStatus(status: string): Meta {
   if (status === 'PROPOSAL_PENDING') return { label: 'Chờ bạn xác nhận giờ', tone: 'danger' }
   return { label: 'Đang xếp kỹ thuật viên', tone: 'info' }
+}
+
+type DispatchState = Pick<CustomerDispatch, 'status'> | null | undefined
+
+/** Nhãn yêu cầu của khách, tính cả khi đang nhờ Smart Solar xếp kỹ thuật viên */
+export function customerRequestStatus(request: RequestState, dispatch: DispatchState): Meta {
+  return canBook(request) && dispatch && isActiveDispatch(dispatch.status)
+    ? customerDispatchStatus(dispatch.status)
+    : customerStatus(request)
+}
+
+/** Việc của khách: đặt giờ (chưa nhờ xếp kỹ thuật viên) hoặc trả lời giờ Smart Solar đề xuất */
+export function customerRequestTodo(request: RequestState, dispatch: DispatchState) {
+  if (!canBook(request)) return false
+  return dispatch?.status === 'PROPOSAL_PENDING' || !isActiveDispatch(dispatch?.status)
 }
 
 /** Mã lỗi đặt giờ cho biết khu vực không có người nhận, nhờ xếp kỹ thuật viên được */
