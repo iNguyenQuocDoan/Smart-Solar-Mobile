@@ -50,11 +50,11 @@ function sameVnDay(time: string | number, now: number) {
   return vnDate(time) === vnDate(now)
 }
 
-/** "14:32:05" today, "14:32 · 18/10" on another day. */
+/** "14:32:05" today, "14:32, 18/10" on another day. */
 export function formatReceivedAt(time: string | number, now: number) {
   return sameVnDay(time, now)
     ? clock.format(new Date(time))
-    : `${clockShort.format(new Date(time))} · ${formatDayMonth(time)}`
+    : `${clockShort.format(new Date(time))}, ${formatDayMonth(time)}`
 }
 
 /** "14:32:05, 18/10/2026" in Vietnam time. */

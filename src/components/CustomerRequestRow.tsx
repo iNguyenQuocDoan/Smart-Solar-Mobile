@@ -1,10 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter, type Href } from 'expo-router'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import type { CustomerDispatch, CustomerRequest } from '@/lib/api/types'
 import { customerRequestStatus } from '@/lib/status'
 import { formatAppointment, formatMoment, shortCode } from '@/lib/format'
-import { Badge } from '@/components/ui'
+import { ListRow, StatusText } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
 export function CustomerRequestRow({
@@ -21,23 +21,17 @@ export function CustomerRequestRow({
   const status = customerRequestStatus(request, dispatch)
   const live = dispatch?.status === 'PROPOSAL_PENDING' ? dispatch.liveProposal : null
   return (
-    <Pressable
-      accessibilityRole="button"
+    <ListRow
       accessibilityLabel={`Xem yêu cầu ${request.propertyName || shortCode(request.surveyRequestId)}`}
       onPress={() =>
         router.push({ pathname: '/customer/request/[id]', params: { id: request.surveyRequestId } } as Href)
       }
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? theme.surfacePressed : theme.surface, borderBottomColor: theme.border },
-        last && styles.last,
-      ]}
+      last={last}
     >
       <View style={styles.copy}>
         <Text style={[styles.name, { color: theme.text }]} numberOfLines={2}>
           {request.propertyName || 'Công trình chưa đặt tên'}
         </Text>
-        <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(request.surveyRequestId)}</Text>
         {request.appointment ? (
           <Text style={[styles.time, { color: theme.text }]}>
             {formatAppointment(request.appointment.startsAt, request.appointment.endsAt)}
@@ -48,25 +42,20 @@ export function CustomerRequestRow({
             Đề xuất {formatAppointment(live.startsAt, live.endsAt)}, trả lời trước {formatMoment(live.expiresAt)}
           </Text>
         ) : null}
-        <Badge tone={status.tone}>{status.label}</Badge>
+        <View style={styles.meta}>
+          <StatusText tone={status.tone}>{status.label}</StatusText>
+          <Text style={[styles.code, { color: theme.textMuted }]}>{shortCode(request.surveyRequestId)}</Text>
+        </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={theme.textSubtle} />
-    </Pressable>
+      <Ionicons name="chevron-forward" size={18} color={theme.textSubtle} />
+    </ListRow>
   )
 }
 
 const styles = StyleSheet.create({
-  row: {
-    minHeight: 112,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  last: { borderBottomWidth: 0 },
-  copy: { flex: 1, alignItems: 'flex-start', gap: 5 },
-  name: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
-  code: { fontSize: 12, lineHeight: 17, fontVariant: ['tabular-nums'] },
-  time: { fontSize: 14, lineHeight: 20 },
+  copy: { flex: 1, gap: 2 },
+  name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
+  time: { fontSize: 13, lineHeight: 18 },
+  meta: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
+  code: { fontSize: 12, lineHeight: 18, fontVariant: ['tabular-nums'] },
 })

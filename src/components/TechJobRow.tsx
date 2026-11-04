@@ -1,10 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter, type Href } from 'expo-router'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import type { TechnicianAppointment } from '@/lib/api/types'
 import { appointmentStatus } from '@/lib/status'
 import { formatShortDate, formatTimeRange, dateOf } from '@/lib/format'
-import { Badge } from '@/components/ui'
+import { ListRow, StatusText } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
 export function TechJobRow({ job, last = false }: { job: TechnicianAppointment; last?: boolean }) {
@@ -12,15 +12,10 @@ export function TechJobRow({ job, last = false }: { job: TechnicianAppointment; 
   const router = useRouter()
   const status = appointmentStatus(job.status, 'technician')
   return (
-    <Pressable
-      accessibilityRole="button"
+    <ListRow
       accessibilityLabel={`Xem việc ${job.propertyName}`}
       onPress={() => router.push({ pathname: '/tech/job/[id]', params: { id: job.appointmentId } } as Href)}
-      style={({ pressed }) => [
-        styles.row,
-        { backgroundColor: pressed ? theme.surfacePressed : theme.surface, borderBottomColor: theme.border },
-        last && styles.last,
-      ]}
+      last={last}
     >
       <View style={styles.timeBlock}>
         <Text style={[styles.time, { color: theme.text }]}>{formatTimeRange(job.startsAt, job.endsAt)}</Text>
@@ -34,30 +29,21 @@ export function TechJobRow({ job, last = false }: { job: TechnicianAppointment; 
           {[job.communeName ?? job.ward ?? job.district, job.province].filter(Boolean).join(', ')}
         </Text>
         {job.isOverdue ? (
-          <Badge tone="danger">Quá giờ, chưa khảo sát</Badge>
+          <StatusText tone="danger">Quá giờ, chưa khảo sát</StatusText>
         ) : (
-          <Badge tone={status.tone}>{status.label}</Badge>
+          <StatusText tone={status.tone}>{status.label}</StatusText>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={20} color={theme.textSubtle} />
-    </Pressable>
+      <Ionicons name="chevron-forward" size={18} color={theme.textSubtle} />
+    </ListRow>
   )
 }
 
 const styles = StyleSheet.create({
-  row: {
-    minHeight: 116,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  last: { borderBottomWidth: 0 },
-  timeBlock: { flexShrink: 0, alignSelf: 'flex-start', gap: 3 },
-  time: { fontSize: 15, lineHeight: 21, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  day: { fontSize: 12, lineHeight: 17, textTransform: 'capitalize' },
-  copy: { flex: 1, alignItems: 'flex-start', gap: 5 },
-  name: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  timeBlock: { flexShrink: 0, alignSelf: 'flex-start', gap: 1 },
+  time: { fontSize: 14, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  day: { fontSize: 12, lineHeight: 16, textTransform: 'capitalize' },
+  copy: { flex: 1, gap: 1 },
+  name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   address: { fontSize: 13, lineHeight: 18 },
 })

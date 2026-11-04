@@ -1,11 +1,11 @@
-import { MetricCard } from '@/components/monitoring/MetricCard'
-import { StatusPill, TestDataPill } from '@/components/monitoring/StatusPill'
+import { MetricFigure } from '@/components/monitoring/MetricFigure'
+import { StatusText } from '@/components/ui'
 import { formatAmpere, formatReceivedAt, formatRelative } from '@/lib/monitoring/format'
 import { deviceStatusView } from '@/lib/monitoring/status'
 import type { MonitoringDevice } from '@/lib/monitoring/types'
 
 /** Headline current of one device, with its status, receive time and anything the reader must know. */
-export function DeviceMetricCard({
+export function DeviceFigure({
   device,
   refreshFailed,
   now,
@@ -19,11 +19,11 @@ export function DeviceMetricCard({
   const missingCurrent = reading && reading.currentA == null ? 'Lần đo này chưa có số đo dòng điện.' : null
   const notes = [status.note, missingCurrent].filter((note): note is string => Boolean(note))
   const caption = reading
-    ? `${status.current ? 'Cập nhật' : 'Nhận'} lúc ${formatReceivedAt(reading.receivedAtUtc, now)} · ${formatRelative(reading.receivedAtUtc, now)}`
+    ? `${status.current ? 'Cập nhật' : 'Nhận'} lúc ${formatReceivedAt(reading.receivedAtUtc, now)}, ${formatRelative(reading.receivedAtUtc, now)}`
     : null
 
   return (
-    <MetricCard
+    <MetricFigure
       label="Dòng điện"
       qualifier={reading && !status.current ? 'số đo cuối' : undefined}
       value={reading?.currentA ?? null}
@@ -34,10 +34,10 @@ export function DeviceMetricCard({
       caption={caption}
       current={status.current}
       notes={notes}
-      pills={
+      status={
         <>
-          <StatusPill label={status.label} tone={status.tone} icon={status.icon} />
-          {reading?.isTest ? <TestDataPill /> : null}
+          <StatusText tone={status.tone}>{status.label}</StatusText>
+          {reading?.isTest ? <StatusText tone="info">Dữ liệu thử</StatusText> : null}
         </>
       }
     />

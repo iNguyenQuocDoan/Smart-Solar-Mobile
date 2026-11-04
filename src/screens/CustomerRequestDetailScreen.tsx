@@ -32,7 +32,7 @@ import {
   isClosedRequest,
 } from '@/lib/status'
 import {
-  Badge,
+  BackButton,
   Button,
   Field,
   IconButton,
@@ -43,6 +43,7 @@ import {
   Screen,
   SectionTitle,
   StateView,
+  StatusText,
 } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
@@ -143,7 +144,6 @@ function BookingForm({
           </View>
         ) : (
           <StateView
-            icon="calendar-clear-outline"
             title="Ngày này không còn giờ trống"
             description={coverageText(slots.data?.coverageStatus) ?? 'Chọn ngày khác để tiếp tục.'}
             action={slots.data?.dispatchAvailable ? dispatchButton : undefined}
@@ -228,17 +228,17 @@ export function CustomerRequestDetailScreen() {
 
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
-      <View style={styles.back}>
-        <IconButton label="Quay lại" icon="arrow-back" onPress={() => router.back()} />
-      </View>
+      <BackButton onPress={() => router.back()} />
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {request && status ? (
         <>
-          <View style={styles.metaRow}>
-            <Badge tone={status.tone}>{status.label}</Badge>
-            <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(request.surveyRequestId)}</Text>
+          <View style={styles.heading}>
+            <PageHeader title={request.propertyName || 'Công trình chưa đặt tên'} />
+            <View style={styles.metaRow}>
+              <StatusText tone={status.tone}>{status.label}</StatusText>
+              <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(request.surveyRequestId)}</Text>
+            </View>
           </View>
-          <PageHeader title={request.propertyName || 'Công trình chưa đặt tên'} />
           {isClosedRequest(request) ? (
             <StateView
               title="Yêu cầu này đã đóng"
@@ -288,17 +288,19 @@ export function CustomerRequestDetailScreen() {
                 />
                 <KeyValue label="Ghi chú của bạn" value={request.appointment.customerNote || '—'} />
                 {request.appointment.canCustomerChange ? (
-                  <View style={styles.actions}>
+                  <View style={styles.actionRow}>
                     <Button
                       label="Đổi giờ"
                       icon="calendar-outline"
                       variant="secondary"
+                      compact
                       onPress={() => setRescheduling(true)}
                     />
                     <Button
                       label="Huỷ lịch"
                       icon="calendar-clear-outline"
                       variant="danger"
+                      compact
                       onPress={confirmCancel}
                       loading={cancel.isPending}
                     />
@@ -321,6 +323,7 @@ export function CustomerRequestDetailScreen() {
                 label="Rút yêu cầu"
                 icon="close-circle-outline"
                 variant="danger"
+                compact
                 onPress={confirmWithdraw}
                 loading={withdraw.isPending}
               />
@@ -353,9 +356,9 @@ export function CustomerRequestDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: { marginLeft: -8 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  code: { fontSize: 12, lineHeight: 17, fontVariant: ['tabular-nums'] },
+  heading: { gap: 2 },
+  metaRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+  code: { fontSize: 12, lineHeight: 18, fontVariant: ['tabular-nums'] },
   dayNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   dayText: {
     flex: 1,
@@ -365,9 +368,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'capitalize',
   },
-  slotGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  slotGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   slot: {
-    minHeight: 44,
+    minHeight: 40,
     minWidth: '47%',
     flexGrow: 1,
     borderWidth: 1,
@@ -377,10 +380,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   slotText: { fontSize: 14, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  appointment: { fontSize: 20, lineHeight: 28, fontWeight: '800' },
-  actions: { gap: 10 },
+  appointment: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  actions: { gap: 8 },
+  actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   error: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  history: { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, gap: 3 },
+  history: { paddingBottom: 8, borderBottomWidth: StyleSheet.hairlineWidth, gap: 1 },
   historyTime: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
   historyStatus: { fontSize: 13, lineHeight: 18 },
 })

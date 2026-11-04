@@ -1,6 +1,6 @@
 import { useRouter, type Href } from 'expo-router'
 import { Alert, StyleSheet, Text, View } from 'react-native'
-import { Button } from '@/components/ui'
+import { Button, ListRow } from '@/components/ui'
 import { useAcceptJob } from '@/hooks/queries'
 import type { OpenAppointment } from '@/lib/api/types'
 import { dateOf, formatArea, formatMoment, formatShortDate, formatTimeRange } from '@/lib/format'
@@ -24,9 +24,7 @@ export function TechOpenJobRow({ job, last = false }: { job: OpenAppointment; la
   }
 
   return (
-    <View
-      style={[styles.row, { backgroundColor: theme.surface, borderBottomColor: theme.border }, last && styles.last]}
-    >
+    <ListRow last={last} style={styles.row}>
       <View style={styles.timeBlock}>
         <Text style={[styles.time, { color: theme.text }]}>{formatTimeRange(job.startsAt, job.endsAt)}</Text>
         <Text style={[styles.day, { color: theme.textMuted }]}>{formatShortDate(dateOf(job.startsAt))}</Text>
@@ -54,17 +52,16 @@ export function TechOpenJobRow({ job, last = false }: { job: OpenAppointment; la
           <Text style={[styles.meta, { color: theme.textMuted }]}>Chưa nhận được: {ineligibleLabel(job.reason)}</Text>
         )}
       </View>
-    </View>
+    </ListRow>
   )
 }
 
 const styles = StyleSheet.create({
-  row: { padding: 16, flexDirection: 'row', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  last: { borderBottomWidth: 0 },
-  timeBlock: { flexShrink: 0, gap: 3 },
-  time: { fontSize: 15, lineHeight: 21, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  day: { fontSize: 12, lineHeight: 17 },
-  copy: { flex: 1, alignItems: 'flex-start', gap: 5 },
-  name: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  row: { alignItems: 'flex-start' },
+  timeBlock: { flexShrink: 0, gap: 1 },
+  time: { fontSize: 14, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  day: { fontSize: 12, lineHeight: 16 },
+  copy: { flex: 1, alignItems: 'flex-start', gap: 1 },
+  name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   meta: { fontSize: 13, lineHeight: 18 },
 })

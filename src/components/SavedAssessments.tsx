@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { Panel, SectionTitle } from '@/components/ui'
+import { ListRow, Panel, SectionTitle } from '@/components/ui'
 import { useMyDrafts, useMySites } from '@/hooks/queries'
 import type { AssessmentDraft, CustomerDraftItem, CustomerSite } from '@/lib/api/types'
 import { formatArea, formatMoment } from '@/lib/format'
@@ -35,15 +35,7 @@ function Row({
 }) {
   const theme = useAppTheme()
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${action}: ${title}`}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.row,
-        { borderColor: theme.border, backgroundColor: pressed ? theme.surfacePressed : theme.surface },
-      ]}
-    >
+    <ListRow accessibilityLabel={`${action}: ${title}`} onPress={onPress}>
       <View style={styles.copy}>
         <Text style={[styles.title, { color: theme.text }]} numberOfLines={2}>
           {title}
@@ -53,7 +45,7 @@ function Row({
         </Text>
       </View>
       <Text style={[styles.action, { color: theme.brandText }]}>{action}</Text>
-    </Pressable>
+    </ListRow>
   )
 }
 
@@ -81,22 +73,24 @@ export function SavedAssessments({
       {draftItems.length > 0 ? (
         <>
           <SectionTitle>Bản nháp đã lưu</SectionTitle>
-          {draftItems.map((d) => (
-            <Row
-              key={d.preSurveyId}
-              title={d.siteName || 'Công trình chưa đặt tên'}
-              detail={[`Sửa ${formatMoment(d.updatedAt)}`, d.usableAreaM2 != null ? formatArea(d.usableAreaM2) : null]
-                .filter(Boolean)
-                .join(', ')}
-              action="Mở"
-              onPress={() =>
-                onOpenDraft(
-                  d,
-                  sites.data?.items.find((s) => s.siteId === d.propertySiteId),
-                )
-              }
-            />
-          ))}
+          <View>
+            {draftItems.map((d) => (
+              <Row
+                key={d.preSurveyId}
+                title={d.siteName || 'Công trình chưa đặt tên'}
+                detail={[`Sửa ${formatMoment(d.updatedAt)}`, d.usableAreaM2 != null ? formatArea(d.usableAreaM2) : null]
+                  .filter(Boolean)
+                  .join(', ')}
+                action="Mở"
+                onPress={() =>
+                  onOpenDraft(
+                    d,
+                    sites.data?.items.find((s) => s.siteId === d.propertySiteId),
+                  )
+                }
+              />
+            ))}
+          </View>
         </>
       ) : null}
       {siteItems.length > 0 ? (
@@ -129,20 +123,10 @@ export function SavedAssessments({
 }
 
 const styles = StyleSheet.create({
-  row: {
-    minHeight: 56,
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  copy: { flex: 1, gap: 2 },
-  title: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  copy: { flex: 1, gap: 1 },
+  title: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   detail: { fontSize: 13, lineHeight: 18 },
   action: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  toggle: { minHeight: 44, justifyContent: 'center' },
+  toggle: { minHeight: 40, justifyContent: 'center' },
   toggleText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
 })

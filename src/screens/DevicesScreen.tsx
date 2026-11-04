@@ -19,7 +19,7 @@ function statusSummary(devices: MonitoringDevice[], refreshFailed: boolean) {
     counts.set(label, (counts.get(label) ?? 0) + 1)
   }
   return [`${devices.length} thiết bị`, ...[...counts].map(([label, count]) => `${count} ${label.toLowerCase()}`)].join(
-    ' · ',
+    ', ',
   )
 }
 
@@ -40,9 +40,7 @@ export function DevicesScreen() {
   } else if (!site) {
     body = (
       <StateView
-        icon="sunny-outline"
         title="Chưa có hệ thống được giám sát"
-        description="Thiết bị đo sẽ xuất hiện sau khi công trình được lắp đặt."
         action={
           <Button
             label="Xem yêu cầu khảo sát"
@@ -67,17 +65,13 @@ export function DevicesScreen() {
           />
         ) : null}
         {site.devices.length === 0 ? (
-          <StateView
-            icon="hardware-chip-outline"
-            title="Công trình chưa có thiết bị giám sát"
-            description="Bộ đo sẽ xuất hiện tại đây sau khi kỹ thuật viên lắp đặt và kích hoạt."
-          />
+          <StateView title="Công trình chưa có thiết bị giám sát" />
         ) : (
           <View style={styles.section}>
             <Text style={[styles.summary, { color: theme.textMuted }]}>
               {statusSummary(site.devices, refreshFailed)}
             </Text>
-            <View style={[styles.list, { borderColor: theme.border }]}>
+            <View>
               {site.devices.map((device, index) => (
                 <DeviceRow
                   key={device.deviceId}
@@ -108,7 +102,6 @@ export function DevicesScreen() {
 }
 
 const styles = StyleSheet.create({
-  section: { gap: 10 },
-  summary: { fontSize: 14, lineHeight: 20 },
-  list: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
+  section: { gap: 4 },
+  summary: { fontSize: 13, lineHeight: 18 },
 })

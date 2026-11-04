@@ -64,3 +64,10 @@ export function specEntries(spec: unknown): { label: string; value: string }[] {
       }
     })
 }
+
+const powerNumber = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 2 })
+
+/** Từ 1.000 W trở lên ghi theo kW, như web */
+export function formatPower(watts: number) {
+  return watts >= 1000 ? `${powerNumber.format(watts / 1000)} kW` : `${powerNumber.format(watts)} W`
+}

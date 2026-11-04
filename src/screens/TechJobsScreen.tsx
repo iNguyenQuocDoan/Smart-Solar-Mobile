@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useOpenJobs, useTechJobs } from '@/hooks/queries'
 import type { TechnicianAppointment } from '@/lib/api/types'
-import { PageHeader, QueryState, Screen, StateView } from '@/components/ui'
+import { PageHeader, QueryState, SCREEN_PADDING, Screen, StateView } from '@/components/ui'
 import { TechJobRow } from '@/components/TechJobRow'
 import { TechOpenJobRow } from '@/components/TechOpenJobRow'
 import { useAppTheme } from '@/theme/theme'
@@ -36,11 +36,8 @@ export function TechJobsScreen() {
       refreshing={open.isRefetching || mine.isRefetching}
       onRefresh={() => void Promise.all([open.refetch(), mine.refetch()])}
     >
-      <PageHeader
-        title="Việc của tôi"
-        description={canTake ? `${canTake} lịch trong khu vực đang chờ người nhận.` : undefined}
-      />
-      <View accessibilityRole="tablist" style={[styles.tabs, { backgroundColor: theme.surfaceMuted }]}>
+      <PageHeader title="Việc của tôi" alert={canTake ? `${canTake} lịch đang chờ người nhận` : undefined} />
+      <View accessibilityRole="tablist" style={[styles.tabs, { borderBottomColor: theme.border }]}>
         {(['open', 'upcoming', 'past'] as const).map((value) => {
           const active = tab === value
           return (
@@ -49,10 +46,10 @@ export function TechJobsScreen() {
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
               onPress={() => setPicked(value)}
-              style={[styles.tab, active && { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.tab, active && { borderBottomColor: theme.brand }]}
             >
               <Text style={[styles.tabText, { color: active ? theme.text : theme.textMuted }]}>
-                {TAB_LABELS[value]} · {counts[value]}
+                {TAB_LABELS[value]} {counts[value]}
               </Text>
             </Pressable>
           )
@@ -61,26 +58,18 @@ export function TechJobsScreen() {
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {query.isPending || query.error ? null : tab === 'open' ? (
         openJobs.length === 0 ? (
-          <StateView
-            icon="calendar-clear-outline"
-            title="Không có lịch nào đang chờ"
-            description="Lịch khách đặt trong khu vực của bạn sẽ hiện ở đây."
-          />
+          <StateView title="Không có lịch nào đang chờ" />
         ) : (
-          <View style={[styles.list, { borderColor: theme.border }]}>
+          <View>
             {openJobs.map((job, index) => (
               <TechOpenJobRow key={job.appointmentId} job={job} last={index === openJobs.length - 1} />
             ))}
           </View>
         )
       ) : shown.length === 0 ? (
-        <StateView
-          icon="calendar-clear-outline"
-          title={tab === 'upcoming' ? 'Chưa có lịch nào cần làm' : 'Chưa có lịch đã qua'}
-          description={tab === 'upcoming' ? 'Nhận lịch ở mục "Chờ nhận" thì lịch hiện ở đây.' : undefined}
-        />
+        <StateView title={tab === 'upcoming' ? 'Chưa có lịch nào cần làm' : 'Chưa có lịch đã qua'} />
       ) : (
-        <View style={[styles.list, { borderColor: theme.border }]}>
+        <View>
           {shown.map((job, index) => (
             <TechJobRow key={job.appointmentId} job={job} last={index === shown.length - 1} />
           ))}
@@ -91,16 +80,13 @@ export function TechJobsScreen() {
 }
 
 const styles = StyleSheet.create({
-  tabs: { flexDirection: 'row', padding: 3, borderRadius: 6, gap: 3 },
-  tab: {
-    flex: 1,
-    minHeight: 42,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
+  tabs: {
+    flexDirection: 'row',
+    gap: 16,
+    marginHorizontal: -SCREEN_PADDING,
+    paddingHorizontal: SCREEN_PADDING,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  tab: { minHeight: 40, justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  list: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
 })

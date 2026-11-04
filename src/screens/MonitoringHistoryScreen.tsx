@@ -7,8 +7,7 @@ import { DemoBanner } from '@/components/monitoring/DemoBanner'
 import { DeviceSwitcher } from '@/components/monitoring/DeviceSwitcher'
 import { RangeSelector } from '@/components/monitoring/RangeSelector'
 import { ReadingList } from '@/components/monitoring/ReadingList'
-import { StatusPill, TestDataPill } from '@/components/monitoring/StatusPill'
-import { IconButton, PageHeader, Panel, Screen, SectionTitle, StateView } from '@/components/ui'
+import { BackButton, PageHeader, Panel, Screen, SectionTitle, StateView, StatusText } from '@/components/ui'
 import { useMonitoring } from '@/contexts/MonitoringContext'
 import { useDeviceReadings, useMonitoringSelection, useMonitoringSites, useNow } from '@/hooks/monitoring'
 import { formatReceivedAt } from '@/lib/monitoring/format'
@@ -43,21 +42,9 @@ export function MonitoringHistoryScreen() {
   } else if (!sites.data) {
     body = sites.error ? <ErrorBlock error={sites.error} onRetry={refresh} /> : null
   } else if (!site) {
-    body = (
-      <StateView
-        icon="sunny-outline"
-        title="Chưa có hệ thống được giám sát"
-        description="Lịch sử dữ liệu sẽ có sau khi công trình được lắp thiết bị đo."
-      />
-    )
+    body = <StateView title="Chưa có hệ thống được giám sát" />
   } else if (!device) {
-    body = (
-      <StateView
-        icon="hardware-chip-outline"
-        title="Công trình chưa có thiết bị giám sát"
-        description="Chưa có thiết bị nào để xem lịch sử dữ liệu."
-      />
-    )
+    body = <StateView title="Công trình chưa có thiết bị giám sát" />
   } else {
     const status = deviceStatusView(device, sitesRefreshFailed)
     const refreshError = sitesRefreshFailed ? sites.error : readingsRefreshFailed ? readings.error : null
@@ -68,9 +55,9 @@ export function MonitoringHistoryScreen() {
           selectedId={device.deviceId}
           onSelect={(deviceId) => select(site.siteId, deviceId)}
         />
-        <View style={styles.pills}>
-          <StatusPill label={status.label} tone={status.tone} icon={status.icon} />
-          {device.lastReading?.isTest ? <TestDataPill /> : null}
+        <View style={styles.status}>
+          <StatusText tone={status.tone}>{status.label}</StatusText>
+          {device.lastReading?.isTest ? <StatusText tone="info">Dữ liệu thử</StatusText> : null}
         </View>
         <RangeSelector windows={HISTORY_WINDOWS} selectedId={windowId} onSelect={setWindowId} />
         {refreshError ? (
@@ -88,11 +75,7 @@ export function MonitoringHistoryScreen() {
             <ErrorBlock error={readings.error} onRetry={() => void readings.refetch()} />
           ) : null
         ) : readings.data.length === 0 || !summary ? (
-          <StateView
-            icon="hourglass-outline"
-            title="Chưa nhận được dữ liệu"
-            description="Thiết bị chưa gửi số đo nào lên hệ thống."
-          />
+          <StateView title="Chưa nhận được dữ liệu" />
         ) : (
           <>
             <Panel>
@@ -105,7 +88,7 @@ export function MonitoringHistoryScreen() {
                   summary.missing ? `${summary.missing} số đo không có giá trị` : null,
                 ]
                   .filter(Boolean)
-                  .join(' · ')}
+                  .join(', ')}
               >
                 Dòng điện theo thời gian
               </SectionTitle>
@@ -123,9 +106,7 @@ export function MonitoringHistoryScreen() {
 
   return (
     <Screen refreshing={sites.isRefetching || readings.isRefetching} onRefresh={refresh}>
-      <View style={styles.back}>
-        <IconButton label="Quay lại" icon="arrow-back" onPress={() => router.back()} />
-      </View>
+      <BackButton onPress={() => router.back()} />
       <PageHeader title="Lịch sử dữ liệu" description={device?.name} />
       <DemoBanner />
       {body}
@@ -134,7 +115,6 @@ export function MonitoringHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: { marginLeft: -8, marginBottom: -12 },
-  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  section: { gap: 12 },
+  status: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  section: { gap: 8 },
 })

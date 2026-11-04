@@ -54,15 +54,14 @@ export function LoginScreen() {
           <Text style={[styles.brandName, { color: theme.text }]}>Smart Solar</Text>
         </View>
 
-        <View style={[styles.form, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.form}>
           <Text accessibilityRole="header" style={[styles.formTitle, { color: theme.text }]}>
             Đăng nhập
           </Text>
           {error ? (
-            <View accessibilityRole="alert" style={[styles.alert, { backgroundColor: theme.dangerSoft }]}>
-              <Ionicons name="alert-circle-outline" size={20} color={theme.danger} />
-              <Text style={[styles.alertText, { color: theme.danger }]}>{error}</Text>
-            </View>
+            <Text accessibilityRole="alert" style={[styles.alertText, { color: theme.danger }]}>
+              {error}
+            </Text>
           ) : null}
           <Field
             label="Email"
@@ -105,18 +104,17 @@ export function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  screen: { justifyContent: 'center', paddingTop: 32, paddingBottom: 40, gap: 32 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  mark: { width: 60, height: 48 },
-  brandName: { fontSize: 18, lineHeight: 24, fontWeight: '800' },
-  form: { borderWidth: 1, borderRadius: 6, padding: 20, gap: 18, maxWidth: 520, width: '100%', alignSelf: 'center' },
+  screen: { justifyContent: 'center', gap: 20 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mark: { width: 50, height: 40 },
+  brandName: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  form: { gap: 12, maxWidth: 520, width: '100%', alignSelf: 'center' },
   formTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
-  alert: { borderRadius: 6, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  alertText: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  alertText: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
   passwordToggle: {
     position: 'absolute',
-    right: 3,
-    bottom: 2,
+    right: 0,
+    bottom: 0,
     width: 44,
     height: 44,
     alignItems: 'center',

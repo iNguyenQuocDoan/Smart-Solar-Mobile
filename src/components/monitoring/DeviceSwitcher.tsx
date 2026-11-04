@@ -1,5 +1,5 @@
-import Ionicons from '@expo/vector-icons/Ionicons'
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
+import { SCREEN_PADDING } from '@/components/ui'
 import type { MonitoringDevice } from '@/lib/monitoring/types'
 import { useAppTheme } from '@/theme/theme'
 
@@ -41,11 +41,6 @@ export function DeviceSwitcher({
               },
             ]}
           >
-            <Ionicons
-              name={active ? 'checkmark' : 'hardware-chip-outline'}
-              size={16}
-              color={active ? theme.brandText : theme.textMuted}
-            />
             <Text numberOfLines={1} style={[styles.label, { color: active ? theme.brandText : theme.text }]}>
               {device.name}
             </Text>
@@ -57,17 +52,16 @@ export function DeviceSwitcher({
 }
 
 const styles = StyleSheet.create({
-  scroller: { marginHorizontal: -16, flexGrow: 0 },
-  row: { paddingHorizontal: 16, gap: 8 },
+  scroller: { marginHorizontal: -SCREEN_PADDING, flexGrow: 0 },
+  row: { paddingHorizontal: SCREEN_PADDING, gap: 6 },
   chip: {
-    minHeight: 44,
+    minHeight: 36,
     maxWidth: 260,
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
+    borderRadius: 6,
+    paddingHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
   },
   label: { flexShrink: 1, fontSize: 14, lineHeight: 19, fontWeight: '700' },
 })

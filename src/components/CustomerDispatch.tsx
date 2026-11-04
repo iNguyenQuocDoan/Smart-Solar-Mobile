@@ -263,6 +263,7 @@ export function DispatchStatusPanel({ requestId, dispatch: d }: { requestId: str
         label="Huỷ yêu cầu xếp lịch"
         icon="close-circle-outline"
         variant="danger"
+        compact
         onPress={confirmCancel}
         loading={cancel.isPending}
       />
@@ -279,16 +280,12 @@ export function DispatchOutcome({ dispatch: d }: { dispatch: CustomerDispatch })
   if (d.resolution === 'CLOSED_BY_STAFF')
     text = `Smart Solar đã đóng yêu cầu xếp kỹ thuật viên${d.resolutionReason ? `: ${d.resolutionReason}` : '.'}`
   if (!text) return null
-  return (
-    <View style={[styles.outcome, { backgroundColor: theme.surfaceMuted }]}>
-      <Text style={[styles.body, { color: theme.text }]}>{text}</Text>
-    </View>
-  )
+  return <Text style={[styles.body, { color: theme.text }]}>{text}</Text>
 }
 
 const styles = StyleSheet.create({
   body: { fontSize: 14, lineHeight: 20 },
-  window: { borderWidth: 1, borderRadius: 6, padding: 10, gap: 10 },
+  window: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 8, gap: 6 },
   dayNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   dayText: {
     flex: 1,
@@ -298,21 +295,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'capitalize',
   },
-  sessions: { flexDirection: 'row', gap: 8 },
+  sessions: { flexDirection: 'row', gap: 6 },
   session: {
     flex: 1,
-    minHeight: 52,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
+    paddingVertical: 3,
   },
-  sessionLabel: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  sessionLabel: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   sessionTime: { fontSize: 12, lineHeight: 16, fontVariant: ['tabular-nums'] },
   proposalDay: { fontSize: 15, lineHeight: 21, fontWeight: '700', textTransform: 'capitalize' },
-  proposalTime: { fontSize: 22, lineHeight: 30, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  actions: { gap: 10 },
+  proposalTime: { fontSize: 18, lineHeight: 24, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  actions: { gap: 8 },
   error: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  outcome: { borderRadius: 6, padding: 12 },
 })

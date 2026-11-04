@@ -37,9 +37,9 @@ export default function TechTabs() {
         tabBarStyle: {
           backgroundColor: theme.surface,
           borderTopColor: theme.border,
-          height: 64 + insets.bottom,
-          paddingTop: 6,
-          paddingBottom: 7 + insets.bottom,
+          height: 54 + insets.bottom,
+          paddingTop: 4,
+          paddingBottom: 4 + insets.bottom,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         sceneStyle: { backgroundColor: theme.canvas },

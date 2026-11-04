@@ -4,22 +4,18 @@ import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useState } from 'react'
 import { useProducts } from '@/hooks/queries'
 import { formatMoney } from '@/lib/format'
-import { primaryImageUrl } from '@/lib/product'
+import { formatPower, primaryImageUrl } from '@/lib/product'
 import type { Product } from '@/lib/api/types'
-import { PageHeader, QueryState, Screen, StateView } from '@/components/ui'
+import { ListRow, PageHeader, QueryState, Screen, StateView } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
-/** Ảnh chính thu nhỏ; chưa có ảnh thì hiện biểu tượng */
+/** Ảnh chính thu nhỏ; chưa có ảnh thì giữ ô xám */
 function ProductThumb({ product }: { product: Product }) {
   const theme = useAppTheme()
   const image = primaryImageUrl(product)
   return (
     <View style={[styles.imageBox, { backgroundColor: theme.surfaceMuted }]}>
-      {image ? (
-        <Image source={{ uri: image }} style={styles.image} resizeMode="contain" />
-      ) : (
-        <Ionicons name="hardware-chip-outline" size={26} color={theme.textSubtle} />
-      )}
+      {image ? <Image source={{ uri: image }} style={styles.image} resizeMode="contain" /> : null}
     </View>
   )
 }
@@ -64,24 +60,15 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
       </View>
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {!query.isPending && !query.error && items.length === 0 ? (
-        <StateView
-          icon="search-outline"
-          title="Không tìm thấy sản phẩm"
-          description="Thử tên hãng, model hoặc từ khoá khác."
-        />
+        <StateView title="Không tìm thấy sản phẩm" description="Thử tên hãng, model hoặc từ khoá khác." />
       ) : (
-        <View style={[styles.list, { borderColor: theme.border }]}>
+        <View>
           {items.map((product, index) => (
-            <Pressable
+            <ListRow
               key={product.id ?? product.sku ?? index}
-              accessibilityRole="button"
               accessibilityLabel={`Xem ${product.name ?? 'sản phẩm'}`}
               onPress={() => open(product)}
-              style={({ pressed }) => [
-                styles.row,
-                { backgroundColor: pressed ? theme.surfacePressed : theme.surface, borderBottomColor: theme.border },
-                index === items.length - 1 && styles.lastRow,
-              ]}
+              last={index === items.length - 1}
             >
               <ProductThumb product={product} />
               <View style={styles.copy}>
@@ -89,17 +76,17 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
                   {product.name || 'Sản phẩm chưa đặt tên'}
                 </Text>
                 <Text style={[styles.meta, { color: theme.textMuted }]} numberOfLines={1}>
-                  {[product.brand, product.model].filter(Boolean).join(' · ') || product.sku || '—'}
+                  {[product.brand, product.model].filter(Boolean).join(', ') || product.sku || '—'}
                 </Text>
                 <View style={styles.specs}>
                   {product.ratedPowerW != null ? (
-                    <Text style={[styles.spec, { color: theme.brandText }]}>{product.ratedPowerW} W</Text>
+                    <Text style={[styles.spec, { color: theme.brandText }]}>{formatPower(product.ratedPowerW)}</Text>
                   ) : null}
                   <Text style={[styles.price, { color: theme.text }]}>{formatMoney(product.unitPrice)}</Text>
                 </View>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={theme.textSubtle} />
-            </Pressable>
+              <Ionicons name="chevron-forward" size={18} color={theme.textSubtle} />
+            </ListRow>
           ))}
         </View>
       )}
@@ -109,38 +96,21 @@ export function ProductsScreen({ role }: { role: 'customer' | 'tech' }) {
 
 const styles = StyleSheet.create({
   search: {
-    minHeight: 48,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 13,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
+    gap: 8,
   },
-  searchInput: { flex: 1, minHeight: 46, fontSize: 15, lineHeight: 21, paddingVertical: 0 },
-  list: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
-  row: {
-    minHeight: 96,
-    padding: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  lastRow: { borderBottomWidth: 0 },
-  imageBox: {
-    width: 68,
-    height: 68,
-    borderRadius: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
+  searchInput: { flex: 1, minHeight: 42, fontSize: 15, lineHeight: 20, paddingVertical: 0 },
+  imageBox: { width: 52, height: 52, borderRadius: 4, overflow: 'hidden' },
   image: { width: '100%', height: '100%' },
-  copy: { flex: 1, gap: 3 },
+  copy: { flex: 1, gap: 1 },
   name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   meta: { fontSize: 13, lineHeight: 18 },
-  specs: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginTop: 3 },
+  specs: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 },
   spec: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   price: { fontSize: 14, lineHeight: 19, fontWeight: '700' },
 })

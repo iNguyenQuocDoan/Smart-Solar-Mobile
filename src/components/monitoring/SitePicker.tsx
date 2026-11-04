@@ -32,9 +32,9 @@ export function SitePicker({
             {site.name}
           </Text>
           {multiple ? (
-            <View style={[styles.switch, { backgroundColor: theme.surfaceMuted }]}>
-              <Text style={[styles.switchText, { color: theme.text }]}>Đổi</Text>
-              <Ionicons name="chevron-down" size={16} color={theme.text} />
+            <View style={styles.switch}>
+              <Text style={[styles.switchText, { color: theme.brandText }]}>Đổi</Text>
+              <Ionicons name="chevron-down" size={16} color={theme.brandText} />
             </View>
           ) : null}
         </View>
@@ -42,7 +42,6 @@ export function SitePicker({
       </View>
     ) : (
       <View style={[styles.field, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <Ionicons name="business-outline" size={20} color={theme.textMuted} />
         <View style={styles.fieldCopy}>
           <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>Công trình</Text>
           <Text numberOfLines={2} style={[styles.fieldValue, { color: theme.text }]}>
@@ -80,7 +79,7 @@ export function SitePicker({
             options: sites.map((item) => ({
               value: item.siteId,
               label: item.name,
-              description: [item.address, `${item.devices.length} thiết bị`].filter(Boolean).join(' · '),
+              description: [item.address, `${item.devices.length} thiết bị`].filter(Boolean).join(', '),
             })),
           },
         ]}
@@ -92,30 +91,23 @@ export function SitePicker({
 
 const styles = StyleSheet.create({
   pressable: { borderRadius: 6 },
-  titleBlock: { gap: 4 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
-  title: { flexShrink: 1, fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: -0.5 },
-  switch: {
-    minHeight: 32,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  switchText: { fontSize: 14, lineHeight: 19, fontWeight: '700' },
-  address: { fontSize: 14, lineHeight: 20 },
+  titleBlock: { gap: 1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
+  title: { flexShrink: 1, fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  switch: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  switchText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  address: { fontSize: 13, lineHeight: 18 },
   field: {
-    minHeight: 56,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
-  fieldCopy: { flex: 1, gap: 1 },
+  fieldCopy: { flex: 1 },
   fieldLabel: { fontSize: 12, lineHeight: 16 },
-  fieldValue: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  fieldValue: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
 })

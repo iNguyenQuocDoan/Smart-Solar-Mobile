@@ -1,10 +1,9 @@
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router'
 import type { ReactNode } from 'react'
-import { StyleSheet, View } from 'react-native'
 import { ErrorBlock, LoadingBlock, RefreshNotice } from '@/components/monitoring/DataState'
 import { DemoBanner } from '@/components/monitoring/DemoBanner'
-import { DeviceMetricCard } from '@/components/monitoring/DeviceMetricCard'
-import { Button, IconButton, KeyValue, PageHeader, Panel, Screen, SectionTitle, StateView } from '@/components/ui'
+import { DeviceFigure } from '@/components/monitoring/DeviceFigure'
+import { BackButton, Button, KeyValue, PageHeader, Panel, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useMonitoring } from '@/contexts/MonitoringContext'
 import { useMonitoringSites, useNow } from '@/hooks/monitoring'
 import { formatFullTimestamp, formatRelative, formatUptime } from '@/lib/monitoring/format'
@@ -28,7 +27,6 @@ export function DeviceDetailScreen() {
   } else if (!found) {
     body = (
       <StateView
-        icon="hardware-chip-outline"
         title="Không tìm thấy thiết bị"
         description="Thiết bị có thể đã được gỡ khỏi công trình."
         action={
@@ -56,14 +54,14 @@ export function DeviceDetailScreen() {
             onRetry={() => void sites.refetch()}
           />
         ) : null}
-        <DeviceMetricCard device={device} refreshFailed={refreshFailed} now={now} />
+        <DeviceFigure device={device} refreshFailed={refreshFailed} now={now} />
         {reading ? (
           <>
             <Panel>
               <SectionTitle>Lần đo gần nhất</SectionTitle>
               <KeyValue
                 label="Thời điểm nhận"
-                value={`${formatFullTimestamp(reading.receivedAtUtc)} · ${formatRelative(reading.receivedAtUtc, now)}`}
+                value={`${formatFullTimestamp(reading.receivedAtUtc)}, ${formatRelative(reading.receivedAtUtc, now)}`}
               />
               <KeyValue
                 label="Thời gian thiết bị chạy liên tục"
@@ -74,6 +72,7 @@ export function DeviceDetailScreen() {
               label="Xem lịch sử dữ liệu"
               icon="stats-chart-outline"
               variant="secondary"
+              compact
               onPress={() => {
                 select(site.siteId, device.deviceId)
                 router.push('/customer/history' as Href)
@@ -87,13 +86,9 @@ export function DeviceDetailScreen() {
 
   return (
     <Screen refreshing={sites.isRefetching} onRefresh={() => void sites.refetch()}>
-      <View style={styles.back}>
-        <IconButton label="Quay lại" icon="arrow-back" onPress={() => router.back()} />
-      </View>
+      <BackButton onPress={() => router.back()} />
       {found ? null : <DemoBanner />}
       {body}
     </Screen>
   )
 }
-
-const styles = StyleSheet.create({ back: { marginLeft: -8, marginBottom: -12 } })

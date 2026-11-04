@@ -80,11 +80,9 @@ function TimeSeriesChartBase({
   const radius = barWidth >= 8 ? 4 : barWidth >= 4 ? 2 : 0
   const selectedIndex = selectedKey == null ? -1 : points.findIndex((point) => point.key === selectedKey)
   const selected = selectedIndex >= 0 ? points[selectedIndex]! : null
-  const readout = selected
-    ? selected.value == null
-      ? 'Không có số đo'
-      : `${formatValue(selected.value)} ${unit}`
-    : null
+  // Chưa chạm vào biểu đồ thì đọc số đo mới nhất
+  const shown = selected ?? [...points].reverse().find((point) => point.value != null)!
+  const readout = shown.value == null ? 'Không có số đo' : `${formatValue(shown.value)} ${unit}`
 
   function pick(x: number) {
     let best = 0
@@ -103,16 +101,12 @@ function TimeSeriesChartBase({
   return (
     <View style={dimmed && styles.dimmed}>
       <View style={styles.readout}>
-        {selected ? (
-          <>
-            <Text style={[styles.readoutValue, { color: theme.text }]}>{readout}</Text>
-            <Text style={[styles.readoutMeta, { color: theme.textMuted }]}>
-              {[formatTime(selected.time), selected.note].filter(Boolean).join(' · ')}
-            </Text>
-          </>
-        ) : (
-          <Text style={[styles.hint, { color: theme.textMuted }]}>Chạm hoặc kéo trên biểu đồ để xem từng số đo.</Text>
-        )}
+        <Text style={[styles.readoutValue, { color: theme.text }]}>
+          {readout}{' '}
+          <Text style={[styles.readoutMeta, { color: theme.textMuted }]}>
+            {[formatTime(shown.time), shown.note].filter(Boolean).join(', ')}
+          </Text>
+        </Text>
       </View>
       <Text style={[styles.axisTitle, { color: theme.textMuted }]}>{axisTitle}</Text>
       <View style={styles.plotRow}>
@@ -207,11 +201,10 @@ export const TimeSeriesChart = memo(TimeSeriesChartBase)
 
 const styles = StyleSheet.create({
   dimmed: { opacity: 0.5 },
-  readout: { minHeight: 46, justifyContent: 'center', gap: 2, marginBottom: 6 },
-  readoutValue: { fontSize: 20, lineHeight: 26, fontWeight: '700' },
-  readoutMeta: { fontSize: 13, lineHeight: 18 },
-  hint: { fontSize: 13, lineHeight: 18 },
-  axisTitle: { fontSize: 12, lineHeight: 16, fontWeight: '600', marginBottom: 6 },
+  readout: { marginBottom: 4 },
+  readoutValue: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  readoutMeta: { fontSize: 13, fontWeight: '400' },
+  axisTitle: { fontSize: 12, lineHeight: 16, fontWeight: '600', marginBottom: 4 },
   plotRow: { flexDirection: 'row' },
   tick: { position: 'absolute', right: 8, fontSize: 11, lineHeight: TICK_HEIGHT, fontVariant: ['tabular-nums'] },
   plot: { flex: 1 },

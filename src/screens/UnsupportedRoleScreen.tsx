@@ -25,7 +25,7 @@ export function UnsupportedRoleScreen() {
 
 const styles = StyleSheet.create({
   screen: { justifyContent: 'center' },
-  copy: { gap: 12 },
-  title: { fontSize: 28, lineHeight: 35, fontWeight: '800', letterSpacing: -0.6 },
-  body: { fontSize: 16, lineHeight: 24 },
+  copy: { gap: 4 },
+  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  body: { fontSize: 14, lineHeight: 20 },
 })

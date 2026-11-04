@@ -55,7 +55,6 @@ export function RangeSelector({
                       },
                     ]}
                   >
-                    {active ? <Ionicons name="checkmark" size={16} color={theme.brandText} /> : null}
                     {!window.supported ? (
                       <Ionicons name="lock-closed-outline" size={14} color={theme.textMuted} />
                     ) : null}
@@ -74,36 +73,34 @@ export function RangeSelector({
         </View>
       ))}
       {notice ? (
-        <View
+        <Text
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
-          style={[styles.notice, { backgroundColor: theme.surfaceMuted }]}
+          style={[styles.noticeText, { color: theme.text }]}
         >
-          <Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} />
-          <Text style={[styles.noticeText, { color: theme.text }]}>{notice}</Text>
-        </View>
+          {notice}
+        </Text>
       ) : null}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 12 },
-  group: { gap: 6 },
+  wrap: { gap: 8 },
+  group: { gap: 4 },
   groupLabel: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {
-    minHeight: 44,
-    minWidth: 56,
+    minHeight: 36,
+    minWidth: 44,
     borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 14,
+    borderRadius: 6,
+    paddingHorizontal: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
   },
   label: { fontSize: 14, lineHeight: 19, fontWeight: '700' },
-  notice: { borderRadius: 6, padding: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  noticeText: { flex: 1, fontSize: 14, lineHeight: 20 },
+  noticeText: { fontSize: 13, lineHeight: 18 },
 })

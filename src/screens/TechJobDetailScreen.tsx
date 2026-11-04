@@ -6,16 +6,16 @@ import type { TechnicianJob } from '@/lib/api/types'
 import { appointmentStatus, assignmentSourceLabel, surfaceLabel } from '@/lib/status'
 import { formatAppointment, formatMoment, shortCode } from '@/lib/format'
 import {
-  Badge,
+  BackButton,
   Button,
   Field,
-  IconButton,
   KeyValue,
   PageHeader,
   Panel,
   QueryState,
   Screen,
   SectionTitle,
+  StatusText,
 } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
@@ -53,7 +53,15 @@ function ReleaseAction({ id }: { id: string }) {
   }
 
   if (!open)
-    return <Button label="Trả lại việc" icon="arrow-undo-outline" variant="secondary" onPress={() => setOpen(true)} />
+    return (
+      <Button
+        label="Trả lại việc"
+        icon="arrow-undo-outline"
+        variant="secondary"
+        compact
+        onPress={() => setOpen(true)}
+      />
+    )
   return (
     <View style={styles.release}>
       <Field
@@ -107,17 +115,17 @@ export function TechJobDetailScreen() {
 
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
-      <View style={styles.back}>
-        <IconButton label="Quay lại" icon="arrow-back" onPress={() => router.back()} />
-      </View>
+      <BackButton onPress={() => router.back()} />
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {job && status ? (
         <>
-          <View style={styles.metaRow}>
-            <Badge tone={status.tone}>{status.label}</Badge>
-            <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(job.surveyRequestId)}</Text>
+          <View style={styles.heading}>
+            <PageHeader title={job.property.name} description={formatAppointment(job.startsAt, job.endsAt)} />
+            <View style={styles.metaRow}>
+              <StatusText tone={status.tone}>{status.label}</StatusText>
+              <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(job.surveyRequestId)}</Text>
+            </View>
           </View>
-          <PageHeader title={job.property.name} description={formatAppointment(job.startsAt, job.endsAt)} />
           <Panel>
             <SectionTitle detail={`${how} lúc ${formatMoment(job.acceptedAt ?? job.assignedAt)}.`}>
               Tình hình
@@ -137,24 +145,22 @@ export function TechJobDetailScreen() {
             />
             <KeyValue label="Bề mặt" value={surfaceLabel(job.property.installationSurfaceType)} />
             <KeyValue label="Vật liệu" value={job.property.surfaceMaterial || '—'} />
-            <Button label="Mở bản đồ" icon="map-outline" variant="secondary" onPress={openMap} />
+            <Button label="Mở bản đồ" icon="map-outline" variant="secondary" compact onPress={openMap} />
           </Panel>
           <Panel>
             <SectionTitle>Số liệu khách khai</SectionTitle>
-            <View style={styles.pairRow}>
-              <KeyValue
-                label="Rộng × dài"
-                value={
-                  job.preSurvey.surfaceWidthM == null
-                    ? '—'
-                    : `${n(job.preSurvey.surfaceWidthM)} × ${n(job.preSurvey.surfaceLengthM)} m`
-                }
-              />
-              <KeyValue
-                label="Dùng được / tổng"
-                value={`${n(job.preSurvey.usableAreaM2)} / ${n(job.preSurvey.totalAreaM2)} m²`}
-              />
-            </View>
+            <KeyValue
+              label="Rộng × dài"
+              value={
+                job.preSurvey.surfaceWidthM == null
+                  ? '—'
+                  : `${n(job.preSurvey.surfaceWidthM)} × ${n(job.preSurvey.surfaceLengthM)} m`
+              }
+            />
+            <KeyValue
+              label="Dùng được / tổng"
+              value={`${n(job.preSurvey.usableAreaM2)} / ${n(job.preSurvey.totalAreaM2)} m²`}
+            />
             <KeyValue
               label="Độ dốc"
               value={job.preSurvey.surfaceTiltDegree == null ? '—' : `${n(job.preSurvey.surfaceTiltDegree)}°`}
@@ -180,6 +186,7 @@ export function TechJobDetailScreen() {
                 label="Gọi khách"
                 icon="call-outline"
                 variant="secondary"
+                compact
                 onPress={() => void Linking.openURL(`tel:${job.customer.phone}`)}
               />
             ) : null}
@@ -192,11 +199,10 @@ export function TechJobDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: { marginLeft: -8 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-  code: { fontSize: 12, lineHeight: 17, fontVariant: ['tabular-nums'] },
-  body: { fontSize: 15, lineHeight: 22 },
-  release: { gap: 12 },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  pairRow: { flexDirection: 'row', gap: 28, flexWrap: 'wrap' },
+  heading: { gap: 2 },
+  metaRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+  code: { fontSize: 12, lineHeight: 18, fontVariant: ['tabular-nums'] },
+  body: { fontSize: 14, lineHeight: 20 },
+  release: { gap: 8 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 })

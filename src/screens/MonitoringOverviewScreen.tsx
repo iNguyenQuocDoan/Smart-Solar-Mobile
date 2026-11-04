@@ -1,16 +1,13 @@
-import Ionicons from '@expo/vector-icons/Ionicons'
 import { useRouter, type Href } from 'expo-router'
 import type { ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { CurrentChart } from '@/components/monitoring/CurrentChart'
 import { ErrorBlock, LoadingBlock, RefreshNotice } from '@/components/monitoring/DataState'
 import { DemoBanner } from '@/components/monitoring/DemoBanner'
-import { DeviceMetricCard } from '@/components/monitoring/DeviceMetricCard'
+import { DeviceFigure } from '@/components/monitoring/DeviceFigure'
 import { DeviceSwitcher } from '@/components/monitoring/DeviceSwitcher'
-import { MetricStrip } from '@/components/monitoring/MetricCard'
-import { ShortcutList } from '@/components/monitoring/ShortcutList'
 import { SitePicker } from '@/components/monitoring/SitePicker'
-import { Button, Panel, Screen, SectionTitle, StateView } from '@/components/ui'
+import { Button, KeyValue, Panel, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useMonitoring } from '@/contexts/MonitoringContext'
 import { useDeviceReadings, useMonitoringSelection, useMonitoringSites, useNow } from '@/hooks/monitoring'
 import { formatAmpere } from '@/lib/monitoring/format'
@@ -44,9 +41,7 @@ export function MonitoringOverviewScreen() {
   } else if (!site) {
     body = (
       <StateView
-        icon="sunny-outline"
         title="Chưa có hệ thống được giám sát"
-        description="Công trình sẽ hiện ở đây sau khi lắp đặt xong."
         action={
           <Button
             label="Xem yêu cầu khảo sát"
@@ -59,13 +54,7 @@ export function MonitoringOverviewScreen() {
       />
     )
   } else if (!device) {
-    body = (
-      <StateView
-        icon="hardware-chip-outline"
-        title="Công trình chưa có thiết bị giám sát"
-        description="Bộ đo sẽ xuất hiện tại đây sau khi kỹ thuật viên lắp đặt và kích hoạt."
-      />
-    )
+    body = <StateView title="Công trình chưa có thiết bị giám sát" />
   } else {
     const refreshError = sitesRefreshFailed ? sites.error : readingsRefreshFailed ? readings.error : null
     body = (
@@ -83,15 +72,13 @@ export function MonitoringOverviewScreen() {
           selectedId={device.deviceId}
           onSelect={(deviceId) => select(site.siteId, deviceId)}
         />
-        <DeviceMetricCard device={device} refreshFailed={sitesRefreshFailed} now={now} />
+        <DeviceFigure device={device} refreshFailed={sitesRefreshFailed} now={now} />
         {summary && summary.min != null && summary.max != null && summary.average != null ? (
-          <MetricStrip
-            items={[
-              { label: 'Thấp nhất', value: `${formatAmpere(summary.min)} A` },
-              { label: 'Trung bình', value: `${formatAmpere(summary.average)} A` },
-              { label: 'Cao nhất', value: `${formatAmpere(summary.max)} A` },
-            ]}
-          />
+          <View>
+            <KeyValue label="Thấp nhất" value={`${formatAmpere(summary.min)} A`} />
+            <KeyValue label="Trung bình" value={`${formatAmpere(summary.average)} A`} />
+            <KeyValue label="Cao nhất" value={`${formatAmpere(summary.max)} A`} />
+          </View>
         ) : null}
         {hasReadings ? (
           <Panel>
@@ -105,44 +92,26 @@ export function MonitoringOverviewScreen() {
             ) : null}
           </Panel>
         ) : null}
-        <ShortcutList
-          items={[
-            {
-              icon: 'hardware-chip-outline',
-              title: 'Thiết bị',
-              detail: `${site.devices.length} thiết bị tại ${site.name}`,
-              onPress: () => router.navigate('/customer/devices' as Href),
-            },
-            {
-              icon: 'stats-chart-outline',
-              title: 'Lịch sử dữ liệu',
-              detail: `Biểu đồ và bản ghi của ${device.name}`,
-              onPress: () => router.push('/customer/history' as Href),
-            },
-          ]}
+        <Button
+          label="Xem lịch sử dữ liệu"
+          icon="stats-chart-outline"
+          variant="secondary"
+          compact
+          onPress={() => router.push('/customer/history' as Href)}
         />
-        <View style={styles.footnote}>
-          <Ionicons name="information-circle-outline" size={18} color={theme.textMuted} />
-          <Text style={[styles.footnoteText, { color: theme.textMuted }]}>
-            Thiết bị hiện chỉ gửi số đo dòng điện (A). Công suất, điện năng và điện áp sẽ hiển thị khi thiết bị cung cấp
-            các số liệu này.
-          </Text>
-        </View>
       </>
     )
   }
 
   return (
     <Screen refreshing={sites.isRefetching || readings.isRefetching} onRefresh={refresh}>
-      <View style={styles.header}>
-        {site && sites.data ? (
-          <SitePicker sites={sites.data} site={site} onSelect={(siteId) => select(siteId, null)} />
-        ) : (
-          <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
-            Tổng quan
-          </Text>
-        )}
-      </View>
+      {site && sites.data ? (
+        <SitePicker sites={sites.data} site={site} onSelect={(siteId) => select(siteId, null)} />
+      ) : (
+        <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+          Tổng quan
+        </Text>
+      )}
       <DemoBanner />
       {body}
     </Screen>
@@ -150,8 +119,5 @@ export function MonitoringOverviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { gap: 6 },
-  title: { fontSize: 28, lineHeight: 34, fontWeight: '700', letterSpacing: -0.6 },
-  footnote: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  footnoteText: { flex: 1, fontSize: 13, lineHeight: 19 },
+  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
 })

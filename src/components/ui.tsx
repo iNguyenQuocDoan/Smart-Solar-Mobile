@@ -13,11 +13,14 @@ import {
   type TextInputProps,
   type ViewStyle,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useAppTheme, type AppTheme } from '@/theme/theme'
 import type { Tone } from '@/lib/status'
 
 export type IconName = ComponentProps<typeof Ionicons>['name']
+
+/** Lề trái phải của mọi màn hình */
+export const SCREEN_PADDING = 12
 
 export function Screen({
   children,
@@ -31,13 +34,14 @@ export function Screen({
   contentStyle?: ViewStyle
 }) {
   const theme = useAppTheme()
+  const insets = useSafeAreaInsets()
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.canvas }]} edges={['top']}>
       <ScrollView
         {...props}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.screen, contentStyle]}
+        contentContainerStyle={[styles.screen, { paddingBottom: 16 + insets.bottom }, contentStyle]}
         refreshControl={
           onRefresh ? (
             <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={theme.brand} />
@@ -51,35 +55,71 @@ export function Screen({
 }
 
 export function PageHeader({
-  eyebrow,
   title,
   description,
+  alert,
   action,
 }: {
-  eyebrow?: string
   title: string
   description?: string
+  /** Việc đang chờ người dùng xử lý, hiện màu đỏ */
+  alert?: string
   action?: ReactNode
 }) {
   const theme = useAppTheme()
   return (
     <View style={styles.pageHeader}>
       <View style={styles.pageHeaderCopy}>
-        {eyebrow ? <Text style={[styles.eyebrow, { color: theme.brandText }]}>{eyebrow}</Text> : null}
         <Text accessibilityRole="header" style={[styles.pageTitle, { color: theme.text }]}>
           {title}
         </Text>
         {description ? <Text style={[styles.description, { color: theme.textMuted }]}>{description}</Text> : null}
+        {alert ? <Text style={[styles.pageAlert, { color: theme.danger }]}>{alert}</Text> : null}
       </View>
       {action}
     </View>
   )
 }
 
-export function Panel({ children, style }: PropsWithChildren<{ style?: ViewStyle }>) {
+// Một phần của trang, không có nền hay khung, các phần liền nhau ngăn bằng đường kẻ
+export function Panel({ children }: PropsWithChildren) {
   const theme = useAppTheme()
+  return <View style={[styles.panel, { borderTopColor: theme.border }]}>{children}</View>
+}
+
+// Dòng danh sách nằm thẳng trên nền trang và tràn hết chiều ngang, kẻ mảnh giữa các dòng
+export function ListRow({
+  children,
+  onPress,
+  accessibilityLabel,
+  accessibilityHint,
+  last = false,
+  style,
+}: PropsWithChildren<{
+  onPress?: () => void
+  accessibilityLabel?: string
+  accessibilityHint?: string
+  last?: boolean
+  style?: ViewStyle
+}>) {
+  const theme = useAppTheme()
+  const frame = [styles.listRow, { borderBottomColor: theme.border }, last && styles.listRowLast, style]
+  if (!onPress)
+    return (
+      <View style={frame} accessible={Boolean(accessibilityLabel)} accessibilityLabel={accessibilityLabel}>
+        {children}
+      </View>
+    )
   return (
-    <View style={[styles.panel, { backgroundColor: theme.surface, borderColor: theme.border }, style]}>{children}</View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      onPress={onPress}
+      style={({ pressed }) => [frame, pressed && { backgroundColor: theme.surfacePressed }]}
+    >
+      {children}
+    </Pressable>
   )
 }
 
@@ -176,23 +216,26 @@ export function IconButton({
   )
 }
 
-export function Badge({ children, tone = 'neutral' }: PropsWithChildren<{ tone?: Tone }>) {
-  const theme = useAppTheme()
-  const colors = tonePalette(theme, tone)
+export function BackButton({ onPress, label = 'Quay lại' }: { onPress: () => void; label?: string }) {
   return (
-    <View style={[styles.badge, { backgroundColor: colors.background }]}>
-      <View style={[styles.badgeDot, { backgroundColor: colors.text }]} />
-      <Text style={[styles.badgeText, { color: colors.text }]}>{children}</Text>
+    <View style={styles.back}>
+      <IconButton label={label} icon="arrow-back" onPress={onPress} />
     </View>
   )
 }
 
-export function tonePalette(theme: AppTheme, tone: Tone) {
-  if (tone === 'danger') return { background: theme.dangerSoft, text: theme.danger }
-  if (tone === 'warning') return { background: theme.warningSoft, text: theme.warning }
-  if (tone === 'success') return { background: theme.successSoft, text: theme.success }
-  if (tone === 'info') return { background: theme.infoSoft, text: theme.info }
-  return { background: theme.surfaceMuted, text: theme.textMuted }
+// Trạng thái là chữ có màu, không nền, không chấm
+export function StatusText({ children, tone = 'neutral' }: PropsWithChildren<{ tone?: Tone }>) {
+  const theme = useAppTheme()
+  return <Text style={[styles.statusText, { color: toneColor(theme, tone) }]}>{children}</Text>
+}
+
+function toneColor(theme: AppTheme, tone: Tone) {
+  if (tone === 'danger') return theme.danger
+  if (tone === 'warning') return theme.warning
+  if (tone === 'success') return theme.success
+  if (tone === 'info') return theme.info
+  return theme.textMuted
 }
 
 export function Field({ label, error, ...props }: TextInputProps & { label: string; error?: string }) {
@@ -216,21 +259,10 @@ export function Field({ label, error, ...props }: TextInputProps & { label: stri
   )
 }
 
-export function StateView({
-  icon = 'file-tray-outline',
-  title,
-  description,
-  action,
-}: {
-  icon?: IconName
-  title: string
-  description?: string
-  action?: ReactNode
-}) {
+export function StateView({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
   const theme = useAppTheme()
   return (
     <View style={styles.state}>
-      <Ionicons name={icon} size={28} color={theme.textMuted} />
       <Text style={[styles.stateTitle, { color: theme.text }]}>{title}</Text>
       {description ? <Text style={[styles.stateDescription, { color: theme.textMuted }]}>{description}</Text> : null}
       {action ? <View style={styles.stateAction}>{action}</View> : null}
@@ -257,7 +289,6 @@ export function QueryState({
   if (error)
     return (
       <StateView
-        icon="cloud-offline-outline"
         title="Không tải được dữ liệu"
         description={error.message}
         action={<Button label="Thử lại" onPress={onRetry} variant="secondary" compact />}
@@ -276,17 +307,11 @@ export function KeyValue({ label, value }: { label: string; value: ReactNode }) 
   return (
     <View style={styles.keyValue}>
       <Text style={[styles.key, { color: theme.textMuted }]}>{label}</Text>
-      {typeof value === 'string' ? <Text style={[styles.value, { color: theme.text }]}>{value}</Text> : value}
-    </View>
-  )
-}
-
-export function Metric({ label, value }: { label: string; value: string }) {
-  const theme = useAppTheme()
-  return (
-    <View style={styles.metric}>
-      <Text style={[styles.metricValue, { color: theme.text }]}>{value}</Text>
-      <Text style={[styles.meta, { color: theme.textMuted }]}>{label}</Text>
+      {typeof value === 'string' ? (
+        <Text style={[styles.value, { color: theme.text }]}>{value}</Text>
+      ) : (
+        <View style={styles.valueBox}>{value}</View>
+      )}
     </View>
   )
 }
@@ -303,55 +328,55 @@ export const uiStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  screen: { flexGrow: 1, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 24 },
-  pageHeader: { gap: 12 },
-  pageHeaderCopy: { gap: 6, flex: 1 },
-  eyebrow: { fontSize: 13, lineHeight: 18, fontWeight: '700', letterSpacing: 0.7, textTransform: 'uppercase' },
-  pageTitle: { fontSize: 28, lineHeight: 34, fontWeight: '700', letterSpacing: -0.6 },
-  description: { fontSize: 15, lineHeight: 22 },
-  panel: { borderWidth: 1, borderRadius: 6, padding: 16, gap: 16 },
-  sectionHeading: { gap: 3 },
-  sectionTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700' },
+  screen: { flexGrow: 1, paddingHorizontal: SCREEN_PADDING, paddingTop: 8, gap: 12 },
+  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
+  pageHeaderCopy: { flex: 1, gap: 2 },
+  pageTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  description: { fontSize: 14, lineHeight: 20 },
+  pageAlert: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  panel: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12, gap: 10 },
+  listRow: {
+    marginHorizontal: -SCREEN_PADDING,
+    paddingHorizontal: SCREEN_PADDING,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  listRowLast: { borderBottomWidth: 0 },
+  sectionHeading: { gap: 2 },
+  sectionTitle: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
   meta: { fontSize: 13, lineHeight: 18 },
   button: {
-    minHeight: 48,
+    minHeight: 44,
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-  },
-  buttonCompact: { minHeight: 44, alignSelf: 'flex-start', paddingHorizontal: 14 },
-  buttonLabel: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
-  disabled: { opacity: 0.55 },
-  iconButton: { width: 44, height: 44, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  badge: {
-    minHeight: 28,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
     gap: 6,
   },
-  badgeDot: { width: 6, height: 6, borderRadius: 3 },
-  badgeText: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
-  field: { gap: 7 },
-  label: { fontSize: 14, lineHeight: 19, fontWeight: '600' },
-  input: { minHeight: 48, borderWidth: 1, borderRadius: 6, paddingHorizontal: 14, fontSize: 16, lineHeight: 22 },
-  textarea: { minHeight: 88, paddingTop: 12, textAlignVertical: 'top' },
+  buttonCompact: { minHeight: 40, alignSelf: 'flex-start' },
+  buttonLabel: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  disabled: { opacity: 0.55 },
+  iconButton: { width: 40, height: 40, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  back: { marginLeft: -8, marginBottom: -4 },
+  statusText: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  field: { gap: 4 },
+  label: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  input: { minHeight: 44, borderWidth: 1, borderRadius: 6, paddingHorizontal: 12, fontSize: 15, lineHeight: 20 },
+  textarea: { minHeight: 72, paddingTop: 10, textAlignVertical: 'top' },
   fieldError: { fontSize: 13, lineHeight: 18 },
-  state: { minHeight: 220, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, gap: 8 },
-  stateTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700', textAlign: 'center' },
-  stateDescription: { fontSize: 14, lineHeight: 20, textAlign: 'center', maxWidth: 320 },
+  state: { paddingVertical: 16, gap: 4 },
+  stateTitle: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
+  stateDescription: { fontSize: 14, lineHeight: 20 },
   stateAction: { marginTop: 8 },
-  loader: { minHeight: 260, alignItems: 'center', justifyContent: 'center' },
+  loader: { minHeight: 120, alignItems: 'center', justifyContent: 'center' },
   divider: { height: StyleSheet.hairlineWidth },
-  keyValue: { gap: 4 },
-  key: { fontSize: 13, lineHeight: 18 },
-  value: { fontSize: 15, lineHeight: 21, fontWeight: '600' },
-  metric: { flex: 1, minWidth: 0, gap: 2 },
-  metricValue: { fontSize: 20, lineHeight: 26, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  keyValue: { flexDirection: 'row', gap: 8 },
+  key: { width: 112, fontSize: 13, lineHeight: 20 },
+  value: { flex: 1, fontSize: 14, lineHeight: 20, fontWeight: '500' },
+  valueBox: { flex: 1 },
 })

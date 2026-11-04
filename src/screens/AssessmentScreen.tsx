@@ -3,9 +3,10 @@ import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import {
+  BackButton,
   Button,
   Field,
-  IconButton,
+  KeyValue,
   PageHeader,
   Panel,
   QueryState,
@@ -268,7 +269,8 @@ function StepBar({ current, firstStep }: { current: number; firstStep: number })
     <View>
       <View style={styles.stepRow}>
         {steps.map((label, index) => (
-          <View key={label} style={styles.stepItem}>
+          // Chấm bước trước nằm trên đường nối của bước sau
+          <View key={label} style={[styles.stepItem, { zIndex: steps.length - index }]}>
             {index > 0 ? (
               <View style={[styles.stepLine, { backgroundColor: index <= current ? theme.brand : theme.border }]} />
             ) : null}
@@ -294,7 +296,7 @@ function StepBar({ current, firstStep }: { current: number; firstStep: number })
         ))}
       </View>
       <Text style={[styles.stepLabel, { color: theme.textMuted }]}>
-        Bước {current + 1}/4 · {steps[current]}
+        Bước {current + 1}/4: {steps[current]}
       </Text>
     </View>
   )
@@ -865,47 +867,39 @@ export function AssessmentScreen() {
       <View style={styles.reviewStack}>
         <Panel>
           <SectionTitle>Địa điểm</SectionTitle>
-          <ReviewRow label="Tên công trình" value={site.name} />
-          <ReviewRow label="Địa chỉ" value={[site.streetLine, site.ward, 'TP.HCM'].filter(Boolean).join(', ')} />
+          <KeyValue label="Tên công trình" value={site.name} />
+          <KeyValue label="Địa chỉ" value={[site.streetLine, site.ward, 'TP.HCM'].filter(Boolean).join(', ')} />
         </Panel>
         <Panel>
           <SectionTitle>Mặt lắp</SectionTitle>
-          <ReviewRow label="Kích thước" value={`${surface.widthM} × ${surface.lengthM} m`} />
-          <ReviewRow
+          <KeyValue label="Kích thước" value={`${surface.widthM} × ${surface.lengthM} m`} />
+          <KeyValue
             label="Độ dốc, hướng"
-            value={`${surface.tiltDegree}° · ${directions.find((item) => item.value === surface.azimuthDegree)?.label}`}
+            value={`${surface.tiltDegree}°, ${directions.find((item) => item.value === surface.azimuthDegree)?.label}`}
           />
-          <ReviewRow
+          <KeyValue
             label="Tổng diện tích"
             value={parsedSurface ? `${parsedSurface.totalAreaM2.toLocaleString('vi-VN')} m²` : '—'}
           />
-          <ReviewRow
+          <KeyValue
             label="Dùng được"
             value={parsedSurface ? `${parsedSurface.usableAreaM2.toLocaleString('vi-VN')} m²` : '—'}
           />
-          <ReviewRow
+          <KeyValue
             label="Vật cản"
             value={surface.obstacles.length ? surface.obstacles.map((item) => item.name).join(', ') : 'Không có'}
           />
         </Panel>
-        <View style={[styles.notice, { backgroundColor: theme.infoSoft }]}>
-          <Text style={[styles.noticeText, { color: theme.info }]}>
-            Mô phỏng tấm pin không bắt buộc. Sau khi gửi, bạn chọn giờ để kỹ thuật viên tới đo lại tại công trình.
-          </Text>
-        </View>
+        <Text style={[styles.noticeText, { color: theme.textMuted }]}>
+          Mô phỏng tấm pin không bắt buộc. Sau khi gửi, bạn chọn giờ để kỹ thuật viên tới đo lại tại công trình.
+        </Text>
       </View>
     )
   }
 
   return (
     <Screen key={`assessment-step-${step}`}>
-      <View style={styles.back}>
-        <IconButton
-          label="Về danh sách yêu cầu"
-          icon="arrow-back"
-          onPress={() => router.navigate('/customer/requests')}
-        />
-      </View>
+      <BackButton label="Về danh sách yêu cầu" onPress={() => router.navigate('/customer/requests')} />
       <PageHeader title="Đánh giá sơ bộ" />
       <StepBar current={step} firstStep={firstStep} />
       {step <= 1 ? (
@@ -930,57 +924,42 @@ export function AssessmentScreen() {
   )
 }
 
-function ReviewRow({ label, value }: { label: string; value: string }) {
-  const theme = useAppTheme()
-  return (
-    <View style={styles.reviewRow}>
-      <Text style={[styles.reviewLabel, { color: theme.textMuted }]}>{label}</Text>
-      <Text style={[styles.reviewValue, { color: theme.text }]}>{value}</Text>
-    </View>
-  )
-}
-
 const styles = StyleSheet.create({
-  back: { marginLeft: -8, marginBottom: -12 },
   stepRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 },
   stepItem: { flex: 1, alignItems: 'center' },
-  stepLine: { position: 'absolute', height: 2, left: '-50%', right: '50%', top: 14 },
-  stepDot: { width: 30, height: 30, borderRadius: 15, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  stepNumber: { fontSize: 13, lineHeight: 18, fontWeight: '800' },
-  stepLabel: { marginTop: 9, textAlign: 'center', fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  choiceGroup: { gap: 8 },
-  label: { fontSize: 14, lineHeight: 19, fontWeight: '600' },
+  stepLine: { position: 'absolute', height: 2, left: '-50%', right: '50%', top: 11 },
+  stepDot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  stepNumber: { fontSize: 12, lineHeight: 16, fontWeight: '700' },
+  stepLabel: { marginTop: 4, textAlign: 'center', fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  choiceGroup: { gap: 6 },
+  label: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
   hint: { fontSize: 13, lineHeight: 18 },
-  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   choice: {
-    minHeight: 44,
+    minHeight: 40,
     borderWidth: 1,
     borderRadius: 6,
-    paddingHorizontal: 13,
+    paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   choiceText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
-  wardPicker: { gap: 8 },
+  wardPicker: { gap: 6 },
   wardList: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },
   wardOption: {
-    minHeight: 44,
-    paddingHorizontal: 13,
+    minHeight: 40,
+    paddingHorizontal: 12,
     justifyContent: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  twoColumns: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  twoColumns: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   column: { flex: 1 },
   obstacleHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   obstacleTitle: { gap: 2 },
-  obstacle: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 16, gap: 14 },
-  obstacleName: { fontSize: 16, lineHeight: 22, fontWeight: '700' },
+  obstacle: { borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10, gap: 10 },
+  obstacleName: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   error: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  actions: { gap: 10 },
-  reviewStack: { gap: 16 },
-  reviewRow: { gap: 3 },
-  reviewLabel: { fontSize: 13, lineHeight: 18 },
-  reviewValue: { fontSize: 15, lineHeight: 21, fontWeight: '600' },
-  notice: { borderRadius: 6, padding: 14 },
-  noticeText: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+  actions: { gap: 8 },
+  reviewStack: { gap: 12 },
+  noticeText: { fontSize: 13, lineHeight: 18 },
 })
