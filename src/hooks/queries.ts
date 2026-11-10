@@ -1,6 +1,19 @@
 import { useMutation, useQueries, useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query'
-import { assessmentService, customerService, productService, technicianService } from '@/lib/api/services'
-import type { CustomerDispatch, CustomerProposal, CustomerRequest, PreferredWindow } from '@/lib/api/types'
+import {
+  assessmentService,
+  customerService,
+  installationService,
+  productService,
+  technicianService,
+} from '@/lib/api/services'
+import type {
+  CustomerDispatch,
+  CustomerProject,
+  CustomerProposal,
+  CustomerRequest,
+  PreferredWindow,
+  ProjectHandover,
+} from '@/lib/api/types'
 import { canBook, isActiveDispatch } from '@/lib/status'
 
 export const keys = {
@@ -19,6 +32,9 @@ export const keys = {
   products: (search: string) => ['products', search] as const,
   product: (id: string) => ['products', 'detail', id] as const,
   communes: ['communes', '79'] as const,
+  projects: ['customer-projects'] as const,
+  handover: (id: string) => ['customer-projects', id, 'handover'] as const,
+  energy: (id: string) => ['customer-projects', id, 'energy'] as const,
 }
 
 /** Danh mục phường, xã ít đổi nên tải một lần mỗi lần mở app */
@@ -221,4 +237,35 @@ export function useProducts(search: string) {
 
 export function useProduct(id: string) {
   return useQuery({ queryKey: keys.product(id), queryFn: () => productService.get(id), enabled: Boolean(id) })
+}
+
+export function useMyProjects() {
+  return useQuery({ queryKey: keys.projects, queryFn: installationService.listProjects })
+}
+
+/** Biên bản bàn giao của mọi công trình đã bàn giao, theo mã công trình */
+export function useHandovers(projects: CustomerProject[] | undefined) {
+  const done = (projects ?? []).filter((p) => p.status === 'COMPLETED')
+  return useQueries({
+    queries: done.map((p) => ({
+      queryKey: keys.handover(p.projectId),
+      queryFn: () => installationService.getHandover(p.projectId),
+    })),
+    combine: (results) => ({
+      handovers: new Map(
+        results.flatMap((r) => (r.data ? [[r.data.projectId, r.data] as [string, ProjectHandover]] : [])),
+      ),
+      pending: results.some((r) => r.isPending),
+      error: results.find((r) => r.error)?.error ?? null,
+    }),
+  })
+}
+
+/** Sản lượng chỉ có cho công trình đã bàn giao */
+export function useEnergy(project: CustomerProject) {
+  return useQuery({
+    queryKey: keys.energy(project.projectId),
+    queryFn: () => installationService.getEnergy(project.projectId),
+    enabled: project.status === 'COMPLETED',
+  })
 }

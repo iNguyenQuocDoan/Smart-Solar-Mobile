@@ -1,107 +1,76 @@
-import { useRouter, type Href } from 'expo-router'
-import type { ReactNode } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { ErrorBlock, LoadingBlock, RefreshNotice } from '@/components/monitoring/DataState'
-import { DemoBanner } from '@/components/monitoring/DemoBanner'
-import { DeviceRow } from '@/components/monitoring/DeviceRow'
-import { SitePicker } from '@/components/monitoring/SitePicker'
-import { Button, PageHeader, Screen, StateView } from '@/components/ui'
-import { useMonitoring } from '@/contexts/MonitoringContext'
-import { useMonitoringSelection, useMonitoringSites, useNow } from '@/hooks/monitoring'
-import { deviceStatusView } from '@/lib/monitoring/status'
-import type { MonitoringDevice } from '@/lib/monitoring/types'
+import { useHandovers, useMyProjects } from '@/hooks/queries'
+import type { ProjectAsset } from '@/lib/api/types'
+import { formatShortDate } from '@/lib/format'
+import { assetTypeLabel, projectTitle } from '@/lib/installation'
+import { ListRow, PageHeader, QueryState, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
-function statusSummary(devices: MonitoringDevice[], refreshFailed: boolean) {
-  const counts = new Map<string, number>()
-  for (const device of devices) {
-    const label = deviceStatusView(device, refreshFailed).label
-    counts.set(label, (counts.get(label) ?? 0) + 1)
-  }
-  return [`${devices.length} thiết bị`, ...[...counts].map(([label, count]) => `${count} ${label.toLowerCase()}`)].join(
-    ', ',
+// Thiết bị đã lắp ở các công trình của khách. Hạn bảo hành lấy từ biên bản bàn giao (khớp theo số seri)
+
+function warrantyText(asset: ProjectAsset, handed: ProjectAsset | undefined) {
+  if (handed?.warrantyEndsOn) return `Bảo hành đến ${formatShortDate(handed.warrantyEndsOn)}`
+  if (asset.warrantyMonths) return `Bảo hành ${asset.warrantyMonths} tháng từ ngày bàn giao`
+  return null
+}
+
+function AssetRow({ asset, handed, last }: { asset: ProjectAsset; handed: ProjectAsset | undefined; last: boolean }) {
+  const theme = useAppTheme()
+  const name = `${assetTypeLabel(asset.assetType)} ${asset.manufacturer} ${asset.model}`
+  const warranty = warrantyText(asset, handed)
+  return (
+    <ListRow last={last} accessibilityLabel={name}>
+      <View style={styles.copy}>
+        <Text style={[styles.name, { color: theme.text }]}>{name}</Text>
+        <Text style={[styles.line, { color: theme.textMuted }]}>
+          Số seri {asset.serialNumber}
+          {asset.positionCode ? `, ${asset.positionCode}` : ''}
+        </Text>
+        {warranty ? <Text style={[styles.line, { color: theme.text }]}>{warranty}</Text> : null}
+      </View>
+    </ListRow>
   )
 }
 
 export function DevicesScreen() {
-  const theme = useAppTheme()
-  const router = useRouter()
-  const { select } = useMonitoring()
-  const now = useNow()
-  const sites = useMonitoringSites()
-  const { site } = useMonitoringSelection(sites.data)
-  const refreshFailed = Boolean(sites.data && sites.error)
-
-  let body: ReactNode
-  if (sites.isPending) {
-    body = <LoadingBlock />
-  } else if (!sites.data) {
-    body = sites.error ? <ErrorBlock error={sites.error} onRetry={() => void sites.refetch()} /> : null
-  } else if (!site) {
-    body = (
-      <StateView
-        title="Chưa có hệ thống được giám sát"
-        action={
-          <Button
-            label="Xem yêu cầu khảo sát"
-            icon="calendar-outline"
-            variant="secondary"
-            compact
-            onPress={() => router.navigate('/customer/requests')}
-          />
-        }
-      />
-    )
-  } else {
-    body = (
-      <>
-        <SitePicker variant="field" sites={sites.data} site={site} onSelect={(siteId) => select(siteId, null)} />
-        {refreshFailed && sites.error ? (
-          <RefreshNotice
-            error={sites.error}
-            updatedAt={sites.dataUpdatedAt}
-            now={now}
-            onRetry={() => void sites.refetch()}
-          />
-        ) : null}
-        {site.devices.length === 0 ? (
-          <StateView title="Công trình chưa có thiết bị giám sát" />
-        ) : (
-          <View style={styles.section}>
-            <Text style={[styles.summary, { color: theme.textMuted }]}>
-              {statusSummary(site.devices, refreshFailed)}
-            </Text>
-            <View>
-              {site.devices.map((device, index) => (
-                <DeviceRow
-                  key={device.deviceId}
-                  device={device}
-                  now={now}
-                  refreshFailed={refreshFailed}
-                  last={index === site.devices.length - 1}
-                  onPress={() => {
-                    select(site.siteId, device.deviceId)
-                    router.push({ pathname: '/customer/device/[id]', params: { id: device.deviceId } } as Href)
-                  }}
-                />
-              ))}
-            </View>
-          </View>
-        )}
-      </>
-    )
-  }
-
+  const projects = useMyProjects()
+  const { handovers, pending, error } = useHandovers(projects.data)
+  const withAssets = (projects.data ?? []).filter((p) => p.status !== 'CANCELLED' && p.assets.length > 0)
   return (
-    <Screen refreshing={sites.isRefetching} onRefresh={() => void sites.refetch()}>
+    <Screen refreshing={projects.isRefetching} onRefresh={() => void projects.refetch()}>
       <PageHeader title="Thiết bị" />
-      <DemoBanner />
-      {body}
+      <QueryState
+        loading={projects.isPending || pending}
+        error={projects.error ?? error}
+        onRetry={() => void projects.refetch()}
+      />
+      {projects.data && !pending && withAssets.length === 0 ? (
+        <StateView title="Chưa có thiết bị nào được lắp" />
+      ) : null}
+      {!pending
+        ? withAssets.map((p) => {
+            const handed = handovers.get(p.projectId)
+            return (
+              <View key={p.projectId}>
+                <SectionTitle detail={`${p.assets.length} thiết bị`}>{projectTitle(p.projectId)}</SectionTitle>
+                {p.assets.map((asset, index) => (
+                  <AssetRow
+                    key={`${asset.serialNumber}-${index}`}
+                    asset={asset}
+                    handed={handed?.assets.find((h) => h.serialNumber === asset.serialNumber)}
+                    last={index === p.assets.length - 1}
+                  />
+                ))}
+              </View>
+            )
+          })
+        : null}
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  section: { gap: 4 },
-  summary: { fontSize: 13, lineHeight: 18 },
+  copy: { flex: 1, gap: 2 },
+  name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
+  line: { fontSize: 13, lineHeight: 18 },
 })

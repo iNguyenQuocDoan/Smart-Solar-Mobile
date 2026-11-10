@@ -11,6 +11,9 @@ import type {
   CustomerRequest,
   CustomerSite,
   CustomerRequestDetail,
+  CustomerProject,
+  EnergyMonitoring,
+  ProjectHandover,
   ListPage,
   OpenAppointment,
   PreferredWindow,
@@ -169,4 +172,12 @@ export const assessmentService = {
     },
   ) => apiPut<unknown>(`/pre-surveys/${encode(preSurveyId)}`, body),
   submit: (preSurveyId: string) => apiPost<{ surveyRequestId: string }>(`/pre-surveys/${encode(preSurveyId)}/submit`),
+}
+
+/** Công trình lắp đặt của khách: thiết bị đã lắp, biên bản bàn giao, sản lượng ước tính */
+export const installationService = {
+  listProjects: () => apiGet<CustomerProject[]>('/customers/me/installation-projects'),
+  getHandover: (id: string) => apiGet<ProjectHandover>(`/customers/me/installation-projects/${encode(id)}/handover`),
+  getEnergy: (id: string) =>
+    apiGet<EnergyMonitoring>(`/customers/me/installation-projects/${encode(id)}/energy-monitoring`),
 }

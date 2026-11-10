@@ -356,3 +356,48 @@ export type CustomerDraftItem = {
 }
 
 export type ListPage<T> = { items: T[]; page: number; pageSize: number; totalItems: number; totalPages: number }
+
+/** Thiết bị đã lắp ở công trình. `assetType`: PANEL | INVERTER | BATTERY | METER | OTHER */
+export type ProjectAsset = {
+  assetType: string
+  manufacturer: string
+  model: string
+  serialNumber: string
+  positionCode: string | null
+  warrantyMonths: number | null
+  /** Chỉ có trong biên bản bàn giao */
+  warrantyEndsOn?: string | null
+}
+
+/** Công trình lắp đặt của khách (GET /customers/me/installation-projects). Khách không thấy tên, địa chỉ công trình */
+export type CustomerProject = {
+  projectId: string
+  contractId: string
+  status: string
+  scheduledStartsAt: string | null
+  scheduledEndsAt: string | null
+  technicianName: string | null
+  completedAt: string | null
+  handoverAt: string | null
+  cancelledAt: string | null
+  assets: ProjectAsset[]
+}
+
+/** Biên bản bàn giao, có hạn bảo hành từng thiết bị (chỉ công trình đã bàn giao) */
+export type ProjectHandover = {
+  projectId: string
+  handoverAt: string
+  technicianName: string | null
+  assets: ProjectAsset[]
+}
+
+/** Sản lượng của công trình: ước tính theo mô phỏng khách đã chọn; chưa nối đồng hồ đo thì `measuredDataAvailable` là false */
+export type EnergyMonitoring = {
+  projectId: string
+  measuredDataAvailable: boolean
+  simulated: {
+    panelCount: number | null
+    installedCapacityKwp: number | null
+    annualEnergyKwh: number | null
+  } | null
+}
