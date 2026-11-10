@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import { useHandovers, useMyProjects } from '@/hooks/queries'
 import type { ProjectAsset } from '@/lib/api/types'
-import { formatShortDate } from '@/lib/format'
+import { formatDate } from '@/lib/format'
 import { assetTypeLabel, projectTitle } from '@/lib/installation'
 import { ListRow, PageHeader, QueryState, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
@@ -9,7 +9,7 @@ import { useAppTheme } from '@/theme/theme'
 // Thiết bị đã lắp ở các công trình của khách. Hạn bảo hành lấy từ biên bản bàn giao (khớp theo số seri)
 
 function warrantyText(asset: ProjectAsset, handed: ProjectAsset | undefined) {
-  if (handed?.warrantyEndsOn) return `Bảo hành đến ${formatShortDate(handed.warrantyEndsOn)}`
+  if (handed?.warrantyEndsOn) return `Bảo hành đến ${formatDate(handed.warrantyEndsOn)}`
   if (asset.warrantyMonths) return `Bảo hành ${asset.warrantyMonths} tháng từ ngày bàn giao`
   return null
 }

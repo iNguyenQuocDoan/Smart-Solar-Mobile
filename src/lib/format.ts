@@ -51,6 +51,12 @@ export function formatShortDate(date: string) {
   return year && month && day ? `${day}/${month}` : date
 }
 
+/** YYYY-MM-DD thành dd/mm/yyyy, cho ngày cách xa như hạn bảo hành */
+export function formatDate(date: string) {
+  const [year, month, day] = date.split('-')
+  return year && month && day ? `${day}/${month}/${year}` : date
+}
+
 export function formatTime(iso: string) {
   return timeText.format(new Date(iso))
 }
