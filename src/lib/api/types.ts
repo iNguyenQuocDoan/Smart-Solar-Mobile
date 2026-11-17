@@ -357,12 +357,16 @@ export type CustomerDraftItem = {
 
 export type ListPage<T> = { items: T[]; page: number; pageSize: number; totalItems: number; totalPages: number }
 
-/** Thiết bị đã lắp ở công trình. `assetType`: PANEL | INVERTER | BATTERY | METER | OTHER */
+/**
+ * Thiết bị đã lắp ở công trình. `assetType`: PANEL | INVERTER | BATTERY | METER | OTHER. Một dòng là một thiết bị có số seri,
+ * hoặc một lô ghi theo số lượng (`serialNumber` null, `quantity` là số thiết bị)
+ */
 export type ProjectAsset = {
   assetType: string
   manufacturer: string
   model: string
-  serialNumber: string
+  serialNumber: string | null
+  quantity: number
   positionCode: string | null
   warrantyMonths: number | null
   /** Chỉ có trong biên bản bàn giao */

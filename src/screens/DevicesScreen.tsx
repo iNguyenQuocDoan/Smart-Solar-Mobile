@@ -2,11 +2,19 @@ import { StyleSheet, Text, View } from 'react-native'
 import { useHandovers, useMyProjects } from '@/hooks/queries'
 import type { ProjectAsset } from '@/lib/api/types'
 import { formatDate } from '@/lib/format'
-import { assetTypeLabel, projectTitle } from '@/lib/installation'
+import { assetTypeLabel, assetUnits, projectTitle } from '@/lib/installation'
 import { ListRow, PageHeader, QueryState, Screen, SectionTitle, StateView } from '@/components/ui'
 import { useAppTheme } from '@/theme/theme'
 
-// Thiết bị đã lắp ở các công trình của khách. Hạn bảo hành lấy từ biên bản bàn giao (khớp theo số seri)
+// Thiết bị đã lắp ở các công trình của khách. Hạn bảo hành lấy từ biên bản bàn giao: dòng của biên bản không có mã nên
+// khớp theo loại, hãng, model, số seri và vị trí (lô ghi theo số lượng không có số seri)
+
+const sameAsset = (a: ProjectAsset, b: ProjectAsset) =>
+  a.assetType === b.assetType &&
+  a.manufacturer === b.manufacturer &&
+  a.model === b.model &&
+  a.serialNumber === b.serialNumber &&
+  a.positionCode === b.positionCode
 
 function warrantyText(asset: ProjectAsset, handed: ProjectAsset | undefined) {
   if (handed?.warrantyEndsOn) return `Bảo hành đến ${formatDate(handed.warrantyEndsOn)}`
@@ -23,7 +31,7 @@ function AssetRow({ asset, handed, last }: { asset: ProjectAsset; handed: Projec
       <View style={styles.copy}>
         <Text style={[styles.name, { color: theme.text }]}>{name}</Text>
         <Text style={[styles.line, { color: theme.textMuted }]}>
-          Số seri {asset.serialNumber}
+          {asset.serialNumber ? `Số seri ${asset.serialNumber}` : `${asset.quantity} thiết bị, ghi theo số lượng`}
           {asset.positionCode ? `, ${asset.positionCode}` : ''}
         </Text>
         {warranty ? <Text style={[styles.line, { color: theme.text }]}>{warranty}</Text> : null}
@@ -52,12 +60,12 @@ export function DevicesScreen() {
             const handed = handovers.get(p.projectId)
             return (
               <View key={p.projectId}>
-                <SectionTitle detail={`${p.assets.length} thiết bị`}>{projectTitle(p.projectId)}</SectionTitle>
+                <SectionTitle detail={`${assetUnits(p.assets)} thiết bị`}>{projectTitle(p.projectId)}</SectionTitle>
                 {p.assets.map((asset, index) => (
                   <AssetRow
-                    key={`${asset.serialNumber}-${index}`}
+                    key={`${asset.serialNumber ?? 'lot'}-${index}`}
                     asset={asset}
-                    handed={handed?.assets.find((h) => h.serialNumber === asset.serialNumber)}
+                    handed={handed?.assets.find((h) => sameAsset(h, asset))}
                     last={index === p.assets.length - 1}
                   />
                 ))}

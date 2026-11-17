@@ -27,6 +27,9 @@ const ASSET_TYPES: Record<string, string> = {
   OTHER: 'Thiết bị khác',
 }
 
+/** Số thiết bị thật: một lô ghi theo số lượng tính đủ số đã đếm */
+export const assetUnits = (assets: readonly { quantity: number }[]) => assets.reduce((sum, a) => sum + a.quantity, 0)
+
 export function assetTypeLabel(type: string) {
   return ASSET_TYPES[type] ?? 'Thiết bị khác'
 }

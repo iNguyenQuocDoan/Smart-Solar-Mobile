@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router'
 import { useEnergy, useMyProjects } from '@/hooks/queries'
 import type { CustomerProject } from '@/lib/api/types'
 import { dateOf, formatAppointment, formatDay } from '@/lib/format'
-import { formatKwhPerYear, formatKwp, projectStatus, projectTitle } from '@/lib/installation'
+import { assetUnits, formatKwhPerYear, formatKwp, projectStatus, projectTitle } from '@/lib/installation'
 import {
   Button,
   KeyValue,
@@ -49,7 +49,7 @@ function ProjectPanel({ project }: { project: CustomerProject }) {
   const status = projectStatus(project.status)
   return (
     <Panel>
-      <SectionTitle detail={project.assets.length > 0 ? `${project.assets.length} thiết bị` : undefined}>
+      <SectionTitle detail={project.assets.length > 0 ? `${assetUnits(project.assets)} thiết bị` : undefined}>
         {projectTitle(project.projectId)}
       </SectionTitle>
       <KeyValue label="Trạng thái" value={<StatusText tone={status.tone}>{status.label}</StatusText>} />
