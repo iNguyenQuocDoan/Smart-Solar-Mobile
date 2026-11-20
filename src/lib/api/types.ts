@@ -395,13 +395,92 @@ export type ProjectHandover = {
   assets: ProjectAsset[]
 }
 
-/** Sản lượng của công trình: ước tính theo mô phỏng khách đã chọn; chưa nối đồng hồ đo thì `measuredDataAvailable` là false */
+// ---------- Giám sát điện năng IoT ----------
+// Viết tay theo record C# của backend 7d27054 (Modules.IotMonitoring.IotViews, Installations.EnergyMonitoringView). Thời gian là
+// chuỗi ISO-8601 có múi giờ. Không có view nào ở phía khách chứa khoá thiết bị
+
+/** Tính lúc đọc: DISABLED > UNASSIGNED > NO_DATA > ONLINE / OFFLINE. UNASSIGNED không xảy ra ở phía khách */
+export type IotConnectionStatus = 'ONLINE' | 'OFFLINE' | 'NO_DATA' | 'UNASSIGNED' | 'DISABLED' | (string & {})
+
+/** Thiết bị đang gắn với công trình (GET …/energy-monitoring/device) */
+export type IotProjectDevice = {
+  bindingId: string
+  /** Mã firmware, vd. ESP32-001 */
+  deviceId: string
+  displayName: string
+  sensorModel: string | null
+  maxCurrentAmps: number
+  /** ACTIVE | DISABLED */
+  deviceStatus: string
+  connectionStatus: IotConnectionStatus
+  boundAt: string
+  lastReadingAt: string | null
+  offlineAfterSeconds: number
+  expectedReportIntervalSeconds: number
+}
+
+/** `currentAmps` giữ nguyên dấu như cảm biến đo (âm khi kẹp ngược chiều). `receivedAt` là giờ server nhận */
+export type IotReading = {
+  readingId: string
+  deviceId: string
+  receivedAt: string
+  currentAmps: number
+}
+
+/** `reading` null khi chưa có số đo, và luôn null khi thiết bị DISABLED */
+export type IotLatestReading = {
+  connectionStatus: IotConnectionStatus
+  reading: IotReading | null
+}
+
+/** Mới nhất trước. `nextBefore` là mốc thời gian (không phải số trang): gửi lại làm `before` để lấy trang cũ hơn */
+export type IotReadingHistory = {
+  items: IotReading[]
+  limit: number
+  hasMore: boolean
+  nextBefore: string | null
+  from: string | null
+  to: string | null
+}
+
+/** MEASURED: phần cứng đo được; NOT_AVAILABLE: không đo, `value` luôn null (không bao giờ là 0) */
+export type IotMeasuredQuantity = {
+  status: 'MEASURED' | 'NOT_AVAILABLE' | (string & {})
+  value: number | null
+  unit: string
+}
+
+/** Khối `measured`: bản phần cứng V1 chỉ đo dòng điện (A); công suất, điện năng, mua / bán điện luôn NOT_AVAILABLE */
+export type IotMeasuredMonitoring = {
+  source: string
+  device: IotProjectDevice
+  latest: IotReading | null
+  currentAmps: IotMeasuredQuantity
+  powerWatts: IotMeasuredQuantity
+  energyProducedKwh: IotMeasuredQuantity
+  energyImportedKwh: IotMeasuredQuantity
+  energyExportedKwh: IotMeasuredQuantity
+  /** Câu tiếng Anh của backend: không hiện nguyên văn */
+  notice: string
+}
+
+/**
+ * Sản lượng của công trình (GET …/energy-monitoring). Hai nguồn tách hẳn: `simulated` là sản lượng dự kiến theo mô phỏng khách đã
+ * chọn (không bao giờ là số đo), `measured` là số đo của thiết bị đang gắn (null khi công trình không có thiết bị).
+ * `measuredDataAvailable` chỉ true khi thiết bị đang gắn đã có số đo và không bị khoá
+ */
 export type EnergyMonitoring = {
   projectId: string
+  projectStatus?: string
   measuredDataAvailable: boolean
+  /** MEASURED_DATA_AVAILABLE | NO_MEASURED_DATA | SIMULATION_UNAVAILABLE */
+  status?: string
   simulated: {
     panelCount: number | null
     installedCapacityKwp: number | null
     annualEnergyKwh: number | null
   } | null
+  /** IOT_DEVICE khi có thiết bị đang gắn */
+  measuredDataSource?: string | null
+  measured?: IotMeasuredMonitoring | null
 }

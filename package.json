@@ -35,6 +35,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "iot:simulate": "node scripts/esp32-simulator.mjs",
+    "iot:smoke": "node scripts/iot-smoke.mjs",
     "test": "node --experimental-strip-types --no-warnings --test \"tests/*.test.mjs\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

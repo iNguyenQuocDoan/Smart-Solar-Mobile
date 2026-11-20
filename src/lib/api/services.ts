@@ -13,6 +13,9 @@ import type {
   CustomerRequestDetail,
   CustomerProject,
   EnergyMonitoring,
+  IotLatestReading,
+  IotProjectDevice,
+  IotReadingHistory,
   ProjectHandover,
   ListPage,
   OpenAppointment,
@@ -25,6 +28,7 @@ import type {
   TechnicianJob,
   TechnicianSchedule,
 } from '@/lib/api/types'
+import { historySearch, isNoBinding, type HistoryQuery } from '@/lib/iot'
 
 const encode = encodeURIComponent
 const collator = new Intl.Collator('vi')
@@ -180,4 +184,35 @@ export const installationService = {
   getHandover: (id: string) => apiGet<ProjectHandover>(`/customers/me/installation-projects/${encode(id)}/handover`),
   getEnergy: (id: string) =>
     apiGet<EnergyMonitoring>(`/customers/me/installation-projects/${encode(id)}/energy-monitoring`),
+}
+
+/** 404 IOT_BINDING_NOT_FOUND là công trình hiện không có thiết bị: trả null, không phải lỗi */
+async function orNoBinding<T>(load: () => Promise<T>): Promise<T | null> {
+  try {
+    return await load()
+  } catch (error) {
+    if (isNoBinding(error)) return null
+    throw error
+  }
+}
+
+/**
+ * Giám sát điện năng của khách, chỉ đọc. Khách không đăng ký, gắn hay tháo thiết bị, và app không bao giờ gửi số đo thay thiết bị
+ * (POST /iot/devices/{deviceId}/readings là việc của ESP32, cần khoá thiết bị mà app không giữ)
+ */
+export const iotService = {
+  getDevice: (projectId: string) =>
+    orNoBinding(() =>
+      apiGet<IotProjectDevice>(`/customers/me/installation-projects/${encode(projectId)}/energy-monitoring/device`),
+    ),
+  getLatest: (projectId: string) =>
+    orNoBinding(() =>
+      apiGet<IotLatestReading>(
+        `/customers/me/installation-projects/${encode(projectId)}/energy-monitoring/readings/latest`,
+      ),
+    ),
+  getHistory: (projectId: string, query: HistoryQuery) =>
+    apiGet<IotReadingHistory>(
+      `/customers/me/installation-projects/${encode(projectId)}/energy-monitoring/readings${historySearch(query)}`,
+    ),
 }

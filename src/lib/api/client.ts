@@ -1,10 +1,13 @@
 import { Platform } from 'react-native'
-import type { ApiEnvelope, AuthTokens } from '@/lib/api/types'
+import type { AuthTokens } from '@/lib/api/types'
+import { ApiError, apiErrorFrom, NETWORK_ERROR_MESSAGE, sessionExpiredError, unwrapResponse } from '@/lib/api/errors'
 import { clearTokens, getAccessToken, getRefreshToken, saveTokens } from '@/lib/auth/tokenStorage'
 
 const fallbackUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8080/api' : 'http://localhost:8080/api'
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? fallbackUrl
 const REQUEST_TIMEOUT_MS = 15_000
+
+export { ApiError, isNetworkError } from '@/lib/api/errors'
 
 // React Native's fetch has no default timeout, so an unreachable host would leave the UI spinning forever.
 async function fetchWithTimeout(url: string, init: RequestInit) {
@@ -15,77 +18,6 @@ async function fetchWithTimeout(url: string, init: RequestInit) {
   } finally {
     clearTimeout(timer)
   }
-}
-
-const messages: Record<string, string> = {
-  AUTH_INVALID_CREDENTIALS: 'Email hoặc mật khẩu không chính xác, hoặc tài khoản chưa thể đăng nhập.',
-  AUTH_REFRESH_TOKEN_INVALID: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-  AUTH_FORBIDDEN: 'Tài khoản không có quyền xem nội dung này.',
-  SURVEY_SLOT_UNAVAILABLE: 'Giờ vừa chọn không còn trống. Hãy chọn giờ khác.',
-  INVALID_BOOKING_STATE: 'Lịch hẹn đã thay đổi. Hãy tải lại để xem trạng thái mới nhất.',
-  PROPERTY_SITE_LOCATION_REQUIRED: 'Địa điểm chưa có mã phường, xã nên chưa thể xếp lịch khảo sát.',
-  CUSTOMER_ALREADY_EXISTS: 'Tài khoản đã có hồ sơ khách hàng.',
-  PRE_SURVEY_INCOMPLETE: 'Bản đánh giá còn thiếu số liệu mặt lắp.',
-  PRE_SURVEY_CONCURRENTLY_MODIFIED: 'Bản đánh giá vừa được sửa ở thiết bị khác. Hãy tải lại dữ liệu mới nhất.',
-  PRE_SURVEY_NOT_EDITABLE: 'Bản đánh giá đã gửi nên không thể sửa tiếp.',
-  PRE_SURVEY_ALREADY_SUBMITTED: 'Bản đánh giá này đã được gửi trước đó.',
-  TECHNICIAN_NOT_ASSIGNED: 'Lịch này không còn được giao cho bạn.',
-  APPOINTMENT_NOT_FOUND: 'Không tìm thấy lịch hẹn, hoặc lịch không còn giao cho bạn.',
-  APPOINTMENT_ALREADY_TAKEN: 'Lịch này vừa có người nhận trước.',
-  APPOINTMENT_CONCURRENCY_CONFLICT: 'Lịch hẹn vừa được thay đổi ở nơi khác. Hãy tải lại rồi thử lần nữa.',
-  TECHNICIAN_SCHEDULE_CONFLICT: 'Bạn đã có lịch khác, hoặc chưa đủ thời gian nghỉ giữa hai việc, vào giờ này.',
-  DAILY_LIMIT_REACHED: 'Bạn đã đủ số lịch trong ngày này.',
-  OUTSIDE_WORKING_HOURS: 'Giờ hẹn nằm ngoài giờ làm của bạn.',
-  TECHNICIAN_ON_LEAVE: 'Bạn đang nghỉ vào thời gian này.',
-  TECHNICIAN_SCHEDULING_DISABLED: 'Bạn đang tắt nhận lịch.',
-  TECHNICIAN_OUTSIDE_ZONE: 'Công trình không thuộc khu vực của bạn.',
-  ONSITE_SURVEY_IN_PROGRESS: 'Buổi khảo sát đã bắt đầu nên không đổi được lịch này.',
-  SCHEDULING_VALIDATION_FAILED: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.',
-  SURVEY_REQUEST_CLOSED: 'Yêu cầu này đã đóng nên không thay đổi được nữa.',
-  SURVEY_REQUEST_CONTRACT_EXISTS: 'Yêu cầu đã có hợp đồng nên không rút được. Liên hệ bộ phận kinh doanh.',
-  SURVEY_REQUEST_APPOINTMENT_OPEN: 'Yêu cầu còn lịch khảo sát đang hẹn. Huỷ lịch trước rồi rút yêu cầu.',
-  SURVEY_REQUEST_CLOSURE_CONFLICT: 'Báo giá của yêu cầu vừa thay đổi. Hãy tải lại rồi thử lần nữa.',
-  SCHEMA_NOT_READY: 'Hệ thống đang cập nhật. Vui lòng thử lại sau ít phút.',
-  NO_ZONE_COVERAGE: 'Phường, xã của công trình chưa có kỹ thuật viên nhận lịch. Hãy nhờ Smart Solar xếp kỹ thuật viên.',
-  ZONE_NOT_SERVICEABLE: 'Khu vực của công trình đang tạm ngừng nhận lịch. Hãy nhờ Smart Solar xếp kỹ thuật viên.',
-  NO_ZONE_TECHNICIAN: 'Khu vực của công trình chưa có kỹ thuật viên. Hãy nhờ Smart Solar xếp kỹ thuật viên.',
-  NO_AVAILABLE_TECHNICIAN:
-    'Kỹ thuật viên của khu vực đã kín lịch. Chọn ngày khác hoặc nhờ Smart Solar xếp kỹ thuật viên.',
-  SCHEDULE_CONFLICT: 'Giờ này kỹ thuật viên của khu vực đã kín lịch. Chọn giờ khác.',
-  DISPATCH_REQUEST_OPEN:
-    'Yêu cầu đang chờ Smart Solar xếp kỹ thuật viên. Trả lời đề xuất hoặc huỷ yêu cầu xếp lịch trước.',
-  DISPATCH_NOT_NEEDED: 'Khu vực của công trình đã có giờ trống vào các khung bạn chọn. Hãy đặt giờ trực tiếp.',
-  DISPATCH_INVALID_STATE: 'Yêu cầu xếp kỹ thuật viên vừa đổi trạng thái. Hãy tải lại để xem.',
-  DISPATCH_STALE_REVISION: 'Yêu cầu vừa được cập nhật. Hãy tải lại rồi thử lần nữa.',
-  PROPOSAL_NOT_PENDING: 'Đề xuất này đã được trả lời hoặc không còn hiệu lực.',
-  PROPOSAL_EXPIRED: 'Đề xuất đã hết hạn trả lời. Smart Solar sẽ gửi đề xuất khác.',
-  INVALID_BOOKING_TIME: 'Giờ này không còn đặt được. Hãy chọn giờ khác.',
-}
-
-const statusMessages: Record<number, string> = {
-  400: 'Dữ liệu gửi lên chưa hợp lệ.',
-  401: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-  403: 'Bạn không có quyền thực hiện thao tác này.',
-  404: 'Không tìm thấy dữ liệu yêu cầu.',
-  409: 'Dữ liệu vừa thay đổi. Hãy tải lại và thử lần nữa.',
-  429: 'Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.',
-  500: 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.',
-  503: 'Hệ thống đang bảo trì. Vui lòng thử lại sau.',
-}
-
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-    readonly code: string | null = null,
-  ) {
-    super(message)
-    this.name = 'ApiError'
-  }
-}
-
-export function isNetworkError(error: unknown) {
-  return error instanceof ApiError && error.status === 0
 }
 
 type SessionExpiredHandler = () => void
@@ -110,35 +42,30 @@ async function readBody(response: Response): Promise<unknown> {
   }
 }
 
-function unwrap<T>(status: number, body: unknown): T {
-  if (body && typeof body === 'object' && 'isSuccess' in body) {
-    const envelope = body as ApiEnvelope<T>
-    if (envelope.isSuccess === false) {
-      const code = envelope.error?.code ?? null
-      // Câu lỗi của backend là tiếng Anh nên chỉ dùng khi không có câu tiếng Việt nào hợp
-      throw new ApiError(
-        messages[code ?? ''] ?? statusMessages[status] ?? envelope.error?.message ?? 'Đã xảy ra lỗi.',
-        status,
-        code,
-      )
-    }
-    return envelope.data as T
-  }
-  return body as T
-}
+/** Network failure, rate limit or server error: the refresh token may still be good, so the session is kept */
+const isTransient = (error: unknown) =>
+  error instanceof ApiError && (error.status === 0 || error.status === 429 || error.status >= 500)
 
 async function refreshAccessToken(): Promise<string> {
   refreshInFlight ??= (async () => {
     const refreshToken = await getRefreshToken()
-    if (!refreshToken) throw new ApiError(statusMessages[401]!, 401)
-    const response = await fetchWithTimeout(`${API_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    })
+    if (!refreshToken) throw sessionExpiredError()
+    let response: Response
+    try {
+      response = await fetchWithTimeout(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      })
+    } catch {
+      throw new ApiError(NETWORK_ERROR_MESSAGE, 0)
+    }
     const body = await readBody(response)
-    if (!response.ok) throw new ApiError(statusMessages[response.status] ?? statusMessages[401]!, response.status)
-    const tokens = unwrap<AuthTokens>(response.status, body)
+    if (!response.ok) {
+      const error = apiErrorFrom(response.status, body, response.headers.get('Retry-After'))
+      throw isTransient(error) ? error : sessionExpiredError()
+    }
+    const tokens = unwrapResponse<AuthTokens>(response.status, body)
     await saveTokens(tokens)
     return tokens.accessToken!
   })().finally(() => {
@@ -172,42 +99,28 @@ export async function apiRequest<T>(path: string, options: ApiOptions = {}): Pro
       body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch {
-    throw new ApiError('Không kết nối được. Kiểm tra mạng rồi thử lại.', 0)
+    throw new ApiError(NETWORK_ERROR_MESSAGE, 0)
   }
 
   if (response.status === 401 && retry && !publicPath(path) && (await getRefreshToken())) {
+    let nextToken: string
     try {
-      const nextToken = await refreshAccessToken()
-      headers.set('Authorization', `Bearer ${nextToken}`)
-      return apiRequest<T>(path, { ...options, headers, retry: false })
-    } catch {
+      // Many requests can fail together: all of them share one refresh, and a request that failed after the token was
+      // already renewed just retries with the new one
+      const current = getAccessToken()
+      nextToken = current && current !== token ? current : await refreshAccessToken()
+    } catch (error) {
+      if (isTransient(error)) throw error
       await clearTokens()
       onSessionExpired?.()
-      throw new ApiError(statusMessages[401]!, 401)
+      throw sessionExpiredError()
     }
+    headers.set('Authorization', `Bearer ${nextToken}`)
+    return apiRequest<T>(path, { ...options, headers, retry: false })
   }
 
   const responseBody = await readBody(response)
-  if (!response.ok) {
-    if (responseBody && typeof responseBody === 'object' && 'isSuccess' in responseBody) {
-      return unwrap<T>(response.status, responseBody)
-    }
-    const raw = responseBody as {
-      code?: unknown
-      message?: unknown
-      error?: { code?: unknown; message?: unknown }
-    } | null
-    const codeValue = raw?.error?.code ?? raw?.code
-    const messageValue = raw?.error?.message ?? raw?.message
-    const code = typeof codeValue === 'string' ? codeValue : null
-    const message =
-      messages[code ?? ''] ??
-      statusMessages[response.status] ??
-      (typeof messageValue === 'string' ? messageValue : null) ??
-      'Đã xảy ra lỗi. Vui lòng thử lại.'
-    throw new ApiError(message, response.status, code)
-  }
-  return unwrap<T>(response.status, responseBody)
+  return unwrapResponse<T>(response.status, responseBody, response.headers.get('Retry-After'))
 }
 
 export function apiGet<T>(path: string) {

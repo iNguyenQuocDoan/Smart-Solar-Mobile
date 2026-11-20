@@ -261,11 +261,14 @@ export function useHandovers(projects: CustomerProject[] | undefined) {
   })
 }
 
-/** Sản lượng chỉ có cho công trình đã bàn giao */
+/**
+ * Sản lượng dự kiến (mô phỏng) và khối `measured` của thiết bị đo. Thiết bị có thể được gắn trước khi bàn giao nên tải cho mọi
+ * công trình chưa huỷ
+ */
 export function useEnergy(project: CustomerProject) {
   return useQuery({
     queryKey: keys.energy(project.projectId),
     queryFn: () => installationService.getEnergy(project.projectId),
-    enabled: project.status === 'COMPLETED',
+    enabled: project.status !== 'CANCELLED',
   })
 }
