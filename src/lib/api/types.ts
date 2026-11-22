@@ -484,3 +484,184 @@ export type EnergyMonitoring = {
   measuredDataSource?: string | null
   measured?: IotMeasuredMonitoring | null
 }
+
+// ---------- Khảo sát tại công trình (kỹ thuật viên) ----------
+// Chép từ types/req/technicianOnSiteSurveyReq.ts và types/res/technicianOnSiteSurveyRes.ts của web
+
+export type OnSiteSurveyObstacleRequest = {
+  kind?: string | null
+  description?: string | null
+  heightM?: number | null
+  areaM2?: number | null
+}
+
+export type BillOfMaterialsRequest = {
+  materials?: { productId: string; quantity: number }[] | null
+  serviceItems?: { productId: string; quantity: number }[] | null
+  installationNotes?: string | null
+}
+
+/** Thân PUT …/onsite-survey; cũng là `changes` của một lần bổ sung (ô null giữ nguyên) */
+export type OnSiteSurveyRequest = {
+  /** null khi chưa có biên bản trên hệ thống */
+  revision?: number | null
+  roofType?: string | null
+  roofMaterial?: string | null
+  roofLengthM?: number | null
+  roofWidthM?: number | null
+  usableAreaM2?: number | null
+  tiltDegree?: number | null
+  azimuthDegree?: number | null
+  roofCondition?: string | null
+  electricalCabinetNotes?: string | null
+  electricalConnectionNotes?: string | null
+  installationFeasibility?: string | null
+  proposedInverterLocation?: string | null
+  proposedPanelLayoutNotes?: string | null
+  measuredLatitude?: number | null
+  measuredLongitude?: number | null
+  notes?: string | null
+  obstacles?: OnSiteSurveyObstacleRequest[] | null
+  billOfMaterials?: BillOfMaterialsRequest
+}
+
+export type OnSiteSurveyAttachmentRequest = { fileId: string; category: string; caption?: string | null }
+
+export type OnSiteSurveyAmendmentRequest = {
+  revision: number
+  reason: string
+  changes: OnSiteSurveyRequest
+  additionalFileIds?: string[] | null
+}
+
+export type OnSiteSurveyBillOfMaterials = {
+  materials: { productId: string; quantity: number }[] | null
+  serviceItems: { productId: string; quantity: number }[] | null
+  installationNotes: string | null
+}
+
+export type OnSiteSurveyObstacleView = {
+  /** CHIMNEY | WATER_TANK | SKYLIGHT | ANTENNA | VENT | TREE_SHADE | BUILDING_SHADE | OTHER */
+  kind: string
+  description: string | null
+  heightM: number | null
+  areaM2: number | null
+}
+
+export type OnSiteSurveyData = {
+  roofType: string | null
+  roofMaterial: string | null
+  roofLengthM: number | null
+  roofWidthM: number | null
+  usableAreaM2: number | null
+  tiltDegree: number | null
+  azimuthDegree: number | null
+  /** GOOD | FAIR | POOR */
+  roofCondition: string | null
+  electricalCabinetNotes: string | null
+  electricalConnectionNotes: string | null
+  /** FEASIBLE | FEASIBLE_WITH_CONDITIONS | NOT_FEASIBLE */
+  installationFeasibility: string | null
+  proposedInverterLocation: string | null
+  proposedPanelLayoutNotes: string | null
+  measuredLatitude: number | null
+  measuredLongitude: number | null
+  notes: string | null
+  obstacles: OnSiteSurveyObstacleView[] | null
+  billOfMaterials: OnSiteSurveyBillOfMaterials | null
+}
+
+export type OnSiteSurveyAttachmentView = {
+  attachmentId: string
+  fileId: string
+  /** ROOF | ELECTRICAL | OBSTACLE | SITE | DOCUMENT */
+  category: string
+  caption: string | null
+  addedAt: string
+  /** Có khi tệp được gắn qua một lần bổ sung sau khi đã hoàn thành */
+  amendmentId: string | null
+}
+
+export type OnSiteSurveyAmendmentView = {
+  amendmentNumber: number
+  authorUserId: string
+  reason: string
+  /** { tênTrường: { old, new } } */
+  changes: unknown
+  createdAt: string
+}
+
+/** GET/PUT …/onsite-survey, start, attachments, complete, amendments đều trả bản này */
+export type OnSiteSurveyView = {
+  reportId: string
+  surveyRequestId: string
+  appointmentId: string
+  technicianUserId: string
+  /** DRAFT | IN_PROGRESS | COMPLETED */
+  status: string
+  /** 0 khi chưa hoàn thành, 1 khi hoàn thành, tăng mỗi lần bổ sung */
+  version: number
+  /** Gửi làm `revision` khi lưu / hoàn thành */
+  revision: number
+  startedAt: string | null
+  completedAt: string | null
+  data: OnSiteSurveyData
+  obstacles: OnSiteSurveyObstacleView[]
+  attachments: OnSiteSurveyAttachmentView[]
+  amendments: OnSiteSurveyAmendmentView[]
+  updatedAt: string
+}
+
+export type OnSiteSurveyAttachmentUrlView = {
+  id: string
+  url: string
+  expiresAt: string
+  /** inline | attachment */
+  disposition: string
+  contentType: string
+  fileName: string
+}
+
+// ---------- Tệp (Modules.Files) ----------
+
+export type PresignedUploadRequest = { purpose: string; fileName: string; contentType: string; sizeBytes: number }
+
+export type RegisterFileRequest = {
+  purpose: string
+  bucket: string
+  objectKey: string
+  fileName: string
+  contentType: string
+  sizeBytes: number
+  checksumSha256: string | null
+}
+
+/** Link PUT ký sẵn. Ai giữ link cũng tải được nên không lưu, không ghi log */
+export type UploadUrlView = {
+  uploadUrl: string
+  /** Luôn "PUT" */
+  method: string
+  bucket: string
+  objectKey: string
+  /** Header phải gửi kèm PUT: Content-Type đã được ký vào link */
+  headers: Record<string, string>
+  expiresAt: string
+}
+
+export type FileView = {
+  fileId: string
+  purpose: string
+  bucket: string
+  objectKey: string
+  originalFileName: string
+  /** PENDING_VERIFICATION | VERIFIED | REJECTED */
+  status: string
+  /** Câu tiếng Anh của backend khi REJECTED */
+  rejectionReason: string | null
+  contentType: string | null
+  sizeBytes: number | null
+  checksumSha256: string | null
+  objectVersionId: string | null
+  verifiedAt: string | null
+  createdAt: string
+}

@@ -134,3 +134,7 @@ export function apiPost<T>(path: string, body?: unknown) {
 export function apiPut<T>(path: string, body?: unknown) {
   return apiRequest<T>(path, { method: 'PUT', body })
 }
+
+export function apiDelete<T>(path: string) {
+  return apiRequest<T>(path, { method: 'DELETE' })
+}

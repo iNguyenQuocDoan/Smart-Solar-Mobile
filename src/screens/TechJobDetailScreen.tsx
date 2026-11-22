@@ -17,6 +17,7 @@ import {
   SectionTitle,
   StatusText,
 } from '@/components/ui'
+import { JobSteps } from '@/components/survey/JobSteps'
 import { useAppTheme } from '@/theme/theme'
 
 const number = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
@@ -133,6 +134,7 @@ export function TechJobDetailScreen() {
             <Text style={[styles.body, { color: theme.text }]}>{nextStep(job, now)}</Text>
             {canRelease ? <ReleaseAction id={job.appointmentId} /> : null}
           </Panel>
+          <JobSteps job={job} />
           <Panel>
             <SectionTitle>Công trình</SectionTitle>
             <KeyValue

@@ -24,7 +24,18 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-secure-store", "expo-font", "expo-status-bar"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-status-bar",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Smart Solar dùng vị trí của máy để ghi toạ độ công trình khi kỹ thuật viên khảo sát tại chỗ."
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

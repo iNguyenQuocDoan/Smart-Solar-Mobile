@@ -1,0 +1,81 @@
+import type { Tone } from '@/lib/status'
+
+// Enum và giới hạn của khảo sát tại công trình (Modules.OnSiteSurveys của backend: OnSiteSurveyVocabulary,
+// OnSiteSurveyOptions). Chép từ common/onsiteSurvey.ts của web. Không import giá trị qua "@/" để chạy được bằng node --test
+
+export const ONSITE_SURVEY_STATUSES: Record<string, { label: string; tone: Tone }> = {
+  DRAFT: { label: 'Chưa bắt đầu', tone: 'neutral' },
+  IN_PROGRESS: { label: 'Đang khảo sát', tone: 'info' },
+  COMPLETED: { label: 'Đã hoàn thành', tone: 'success' },
+}
+
+export const ROOF_CONDITIONS = [
+  { value: 'GOOD', label: 'Tốt' },
+  { value: 'FAIR', label: 'Trung bình' },
+  { value: 'POOR', label: 'Kém' },
+] as const
+
+export const INSTALLATION_FEASIBILITIES = [
+  { value: 'FEASIBLE', label: 'Lắp được', hint: 'Lắp theo phương án bình thường.' },
+  {
+    value: 'FEASIBLE_WITH_CONDITIONS',
+    label: 'Lắp được, có điều kiện',
+    hint: 'Cần gia cố, dời vật cản… ghi ở phần ghi chú.',
+  },
+  { value: 'NOT_FEASIBLE', label: 'Không lắp được', hint: 'Ghi lý do ở phần ghi chú.' },
+] as const
+
+/** Loại ảnh / tài liệu. Backend bắt ít nhất một ảnh loại ROOF trước khi hoàn thành */
+export const ONSITE_ATTACHMENT_CATEGORIES = [
+  { value: 'ROOF', label: 'Mái' },
+  { value: 'ELECTRICAL', label: 'Tủ điện, đấu nối' },
+  { value: 'OBSTACLE', label: 'Vật cản' },
+  { value: 'SITE', label: 'Toàn cảnh công trình' },
+  { value: 'DOCUMENT', label: 'Giấy tờ' },
+] as const
+
+export const ONSITE_OBSTACLE_KINDS = [
+  { value: 'WATER_TANK', label: 'Bồn nước' },
+  { value: 'CHIMNEY', label: 'Ống khói' },
+  { value: 'VENT', label: 'Ống thông gió' },
+  { value: 'SKYLIGHT', label: 'Cửa mái lấy sáng' },
+  { value: 'ANTENNA', label: 'Ăng-ten' },
+  { value: 'TREE_SHADE', label: 'Bóng cây' },
+  { value: 'BUILDING_SHADE', label: 'Bóng nhà bên cạnh' },
+  { value: 'OTHER', label: 'Khác' },
+] as const
+
+/** Gợi ý cho hai ô chữ tự do của backend (roofType, roofMaterial), vẫn gõ được giá trị khác */
+export const ROOF_TYPE_SUGGESTIONS = ['Mái bằng', 'Sân thượng', 'Mái dốc một mặt', 'Mái dốc hai mặt', 'Mái nhiều mặt']
+export const ROOF_MATERIAL_SUGGESTIONS = ['Tôn', 'Ngói', 'Bê tông', 'Fibro xi măng', 'Kính']
+
+/** Lựa chọn của các ô tủ điện; giá trị chính là chữ ghi vào `electricalCabinetNotes` */
+export const CABINET_LOCATION_SUGGESTIONS = [
+  'Trong nhà, tầng trệt',
+  'Trong nhà, trên lầu',
+  'Nhà xe, gara',
+  'Ngoài trời, mặt tiền',
+  'Cạnh công tơ điện',
+]
+export const CABINET_PHASES = ['1 pha', '3 pha']
+export const MAIN_BREAKER_SUGGESTIONS = ['32 A', '40 A', '50 A', '63 A', '80 A', '100 A', '125 A']
+export const CABINET_SPARE_SPACES = ['Còn chỗ lắp thêm aptomat', 'Hết chỗ, cần lắp tủ phụ']
+
+/** Tám hướng, mỗi hướng cách nhau 45 độ, bắt đầu từ Bắc (0 độ) */
+export const DIRECTIONS = ['Bắc', 'Đông Bắc', 'Đông', 'Đông Nam', 'Nam', 'Tây Nam', 'Tây', 'Tây Bắc']
+
+/** Giới hạn của backend (Validate, Trim, OnSiteSurveyOptions) */
+export const ONSITE_SURVEY_LIMITS = {
+  maxSideM: 500,
+  maxObstacles: 50,
+  maxObstacleHeightM: 100,
+  maxObstacleAreaM2: 10_000,
+  roofTextLength: 50,
+  longNoteLength: 2000,
+  inverterLocationLength: 500,
+  notesLength: 4000,
+  obstacleDescriptionLength: 500,
+  maxAttachments: 60,
+  /** Bắt đầu sớm nhất trước giờ hẹn (mặc định của backend, quản trị đổi được) */
+  earlyStartMinutes: 120,
+} as const

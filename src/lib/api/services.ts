@@ -1,4 +1,4 @@
-import { ApiError, apiGet, apiPost, apiPut } from '@/lib/api/client'
+import { ApiError, apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client'
 import type {
   AcceptResult,
   AuthTokens,
@@ -18,6 +18,10 @@ import type {
   IotReadingHistory,
   ProjectHandover,
   ListPage,
+  OnSiteSurveyAttachmentRequest,
+  OnSiteSurveyAttachmentUrlView,
+  OnSiteSurveyRequest,
+  OnSiteSurveyView,
   OpenAppointment,
   PreferredWindow,
   Product,
@@ -109,6 +113,8 @@ export const productService = {
       `/products?Page=1&PageSize=50&SortBy=name&SortDirection=asc${search ? `&Search=${encode(search)}` : ''}`,
     ),
   get: (id: string) => apiGet<Product>(`/products/${encode(id)}`),
+  /** Danh mục để chọn vật tư, dịch vụ và dòng báo giá: 100 sản phẩm đầu theo tên, như ô chọn của web */
+  catalog: () => apiGet<ProductPage>('/products?PageSize=100&SortBy=name&SortDirection=asc'),
 }
 
 export const assessmentService = {
@@ -214,5 +220,30 @@ export const iotService = {
   getHistory: (projectId: string, query: HistoryQuery) =>
     apiGet<IotReadingHistory>(
       `/customers/me/installation-projects/${encode(projectId)}/energy-monitoring/readings${historySearch(query)}`,
+    ),
+}
+
+// Khảo sát tại công trình của kỹ thuật viên, theo mã lịch hẹn của mình. Mọi lệnh ghi trả lại cả biên bản (kèm revision mới).
+// Xem services/onSiteSurveyService.ts của web
+const survey = (appointmentId: string) => `/technicians/me/appointments/${encode(appointmentId)}/onsite-survey`
+
+export const onsiteSurveyService = {
+  /** null khi chưa bắt đầu hay lưu lần nào */
+  get: (appointmentId: string) => apiGet<OnSiteSurveyView | null>(survey(appointmentId)),
+  /** Ghi giờ bắt đầu tại công trình (sớm nhất khoảng 2 giờ trước giờ hẹn) */
+  start: (appointmentId: string) => apiPost<OnSiteSurveyView>(`${survey(appointmentId)}/start`),
+  /** Ghi đè số đo, vật cản, bảng vật tư. `revision` null khi chưa có biên bản */
+  save: (appointmentId: string, body: OnSiteSurveyRequest) => apiPut<OnSiteSurveyView>(survey(appointmentId), body),
+  /** Cần đã bắt đầu, đủ số đo bắt buộc và ít nhất một ảnh Mái. Lịch hẹn và yêu cầu chuyển sang đã khảo sát */
+  complete: (appointmentId: string, revision: number) =>
+    apiPost<OnSiteSurveyView>(`${survey(appointmentId)}/complete`, { revision }),
+  /** Gắn tệp ONSITE_SURVEY_EVIDENCE đã xác minh */
+  addAttachment: (appointmentId: string, body: OnSiteSurveyAttachmentRequest) =>
+    apiPost<OnSiteSurveyView>(`${survey(appointmentId)}/attachments`, body),
+  removeAttachment: (appointmentId: string, attachmentId: string) =>
+    apiDelete<OnSiteSurveyView>(`${survey(appointmentId)}/attachments/${encode(attachmentId)}`),
+  attachmentUrl: (appointmentId: string, attachmentId: string) =>
+    apiGet<OnSiteSurveyAttachmentUrlView>(
+      `${survey(appointmentId)}/attachments/${encode(attachmentId)}/url?disposition=inline`,
     ),
 }
