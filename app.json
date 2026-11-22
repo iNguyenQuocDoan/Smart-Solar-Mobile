@@ -30,6 +30,13 @@
       "expo-font",
       "expo-status-bar",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Smart Solar cần xem ảnh để bạn gửi ảnh công trình.",
+          "cameraPermission": "Smart Solar cần máy ảnh để bạn chụp ảnh công trình."
+        }
+      ],
+      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Smart Solar dùng vị trí của máy để ghi toạ độ công trình khi kỹ thuật viên khảo sát tại chỗ."

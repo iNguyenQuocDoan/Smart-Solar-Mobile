@@ -3,14 +3,18 @@ import {
   assessmentService,
   customerService,
   installationService,
+  notificationService,
+  techInstallationService,
   productService,
   technicianService,
 } from '@/lib/api/services'
 import type {
   CustomerDispatch,
+  CustomerNotification,
   CustomerProject,
   CustomerProposal,
   CustomerRequest,
+  InstallationProject,
   PreferredWindow,
   ProjectHandover,
 } from '@/lib/api/types'
@@ -29,9 +33,12 @@ export const keys = {
   techOpen: ['technician-jobs', 'open'] as const,
   schedule: (date: string) => ['technician-jobs', 'schedule', date] as const,
   techJob: (id: string) => ['technician-job', id] as const,
+  installations: ['technician-installations'] as const,
+  installation: (id: string) => ['technician-installations', id] as const,
   products: (search: string) => ['products', search] as const,
   product: (id: string) => ['products', 'detail', id] as const,
   communes: ['communes', '79'] as const,
+  notifications: ['customer-notifications'] as const,
   projects: ['customer-projects'] as const,
   handover: (id: string) => ['customer-projects', id, 'handover'] as const,
   energy: (id: string) => ['customer-projects', id, 'energy'] as const,
@@ -270,5 +277,54 @@ export function useEnergy(project: CustomerProject) {
     queryKey: keys.energy(project.projectId),
     queryFn: () => installationService.getEnergy(project.projectId),
     enabled: project.status !== 'CANCELLED',
+  })
+}
+
+/** Tự tải lại để số đỏ cập nhật khi quản lý giao việc mới */
+export function useTechInstallations() {
+  return useQuery({
+    queryKey: keys.installations,
+    queryFn: techInstallationService.list,
+    refetchInterval: JOBS_REFRESH_MS,
+  })
+}
+
+export function useTechInstallation(id: string) {
+  return useQuery({
+    queryKey: keys.installation(id),
+    queryFn: () => techInstallationService.get(id),
+    enabled: Boolean(id),
+  })
+}
+
+/** Mọi lệnh trả lại công trình mới: đặt vào cache; xong (kể cả lỗi 409) thì tải lại danh sách và chi tiết */
+export function useInstallationWrite<V>(id: string, write: (vars: V) => Promise<InstallationProject>) {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: write,
+    onSuccess: (view) => client.setQueryData(keys.installation(id), view),
+    onSettled: () => client.invalidateQueries({ queryKey: keys.installations }),
+  })
+}
+
+/** Thông báo của khách, tự tải lại mỗi phút để số trên chuông cập nhật */
+export function useNotifications(enabled = true) {
+  return useQuery({
+    queryKey: keys.notifications,
+    queryFn: notificationService.list,
+    refetchInterval: 60_000,
+    enabled,
+  })
+}
+
+/** Đánh dấu đã đọc, ghi `readAt` vào danh sách đang có để số trên chuông giảm ngay */
+export function useMarkNotificationRead() {
+  const client = useQueryClient()
+  return useMutation({
+    mutationFn: notificationService.markRead,
+    onSuccess: (view) =>
+      client.setQueryData<CustomerNotification[]>(keys.notifications, (list) =>
+        list?.map((n) => (n.notificationId === view.notificationId ? { ...n, readAt: view.readAt } : n)),
+      ),
   })
 }

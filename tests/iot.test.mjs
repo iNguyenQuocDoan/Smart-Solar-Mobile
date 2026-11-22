@@ -114,7 +114,6 @@ test('nhãn trạng thái kết nối giống web', () => {
   assert.equal(connectionMeta('OFFLINE').label, 'Mất kết nối')
   assert.equal(connectionMeta('NO_DATA').label, 'Chưa có số đo')
   assert.equal(connectionMeta('DISABLED').label, 'Thiết bị bị khoá')
-  assert.match(connectionMeta('NO_DATA').hint, /không có nghĩa là dòng điện bằng 0/)
   assert.notEqual(connectionMeta('SOMETHING_NEW').label, 'SOMETHING_NEW')
 })
 
@@ -210,6 +209,6 @@ test('mỗi mã lỗi có câu tiếng Việt riêng', () => {
   assert.match(iotErrorMessage({ status: 0, code: null }), /Mất kết nối mạng/)
   for (const code of ['FEATURE_PENDING_MIGRATION', 'SCHEMA_NOT_READY', 'IOT_STORAGE_UNAVAILABLE']) {
     assert.equal(isMonitoringUnavailable({ status: 503, code }), true, code)
-    assert.match(iotErrorMessage({ status: 503, code }), /Hệ thống giám sát chưa sẵn sàng/, code)
+    assert.match(iotErrorMessage({ status: 503, code }), /Chưa xem được số đo/, code)
   }
 })

@@ -28,19 +28,10 @@ export function CustomerRequestsScreen() {
       const priority = rank(a, now) - rank(b, now)
       return priority || b.request.submittedAt.localeCompare(a.request.submittedAt)
     })
-  const toConfirm = items.filter(({ dispatch }) => dispatch?.status === 'PROPOSAL_PENDING').length
-  const toBook = items.filter(({ request, dispatch }) => customerRequestTodo(request, dispatch)).length - toConfirm
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
       <PageHeader
         title="Yêu cầu khảo sát"
-        alert={
-          toConfirm
-            ? `${toConfirm} đề xuất giờ khảo sát chờ bạn xác nhận`
-            : toBook
-              ? `${toBook} yêu cầu chưa đặt giờ khảo sát`
-              : undefined
-        }
         action={
           <Button
             label="Đánh giá mới"

@@ -665,3 +665,85 @@ export type FileView = {
   verifiedAt: string | null
   createdAt: string
 }
+
+/** Thông báo của khách, mới nhất trước (tối đa 100); `readAt` null là chưa đọc */
+export type CustomerNotification = {
+  notificationId: string
+  type: string
+  message: string
+  requestId: string | null
+  subscriptionId: string | null
+  createdAt: string
+  readAt: string | null
+}
+
+export type SignedFileUrl = { url: string; expiresAt: string; contentType: string; fileName: string }
+
+export type UploadTarget = {
+  method: string
+  uploadUrl: string
+  headers: Record<string, string> | null
+  bucket: string
+  objectKey: string
+}
+
+export type StoredFile = {
+  fileId: string
+  /** PENDING_VERIFICATION | VERIFIED | REJECTED */
+  status: string
+  rejectionReason: string | null
+}
+
+/** Công trình lắp đặt theo góc nhìn kỹ thuật viên phụ trách; mọi thao tác trả lại bản mới */
+export type InstallationProject = {
+  projectId: string
+  /** SCHEDULED | IN_PROGRESS | PENDING_CUSTOMER_ACCEPTANCE | REWORK_REQUIRED | COMPLETED | CANCELLED ... */
+  status: string
+  /** PENDING | ACCEPTED | DECLINED | REPLACED | COMPLETED | CANCELLED */
+  myAssignmentStatus: string
+  startsAt: string
+  endsAt: string
+  zoneName: string | null
+  /** null sau khi từ chối */
+  site: {
+    propertyName: string
+    province: string
+    district: string | null
+    ward: string | null
+    streetLine: string | null
+    customerName: string
+    customerPhone: string | null
+  } | null
+  startedAt: string | null
+  acceptanceRequestedAt: string | null
+  completedAt: string | null
+  /** Khách / quản lý yêu cầu sửa lại thì sang lượt mới và cần ảnh mới */
+  currentRound: number
+  revision: number
+  canStart: boolean
+  startBlockedReason: string | null
+  evidence: { evidenceId: string; fileId: string; round: number; caption: string | null; addedAt: string }[]
+  assets: (ProjectAsset & { assetId: string; productId: string | null })[]
+  acceptances: {
+    round: number
+    requestedAt: string
+    completionReport: string
+    /** PENDING | ACCEPTED | REWORK_REQUESTED */
+    decision: string
+    decidedAt: string | null
+    reason: string | null
+    decidedBy: string | null
+  }[]
+  equipment?: {
+    /** MATCHES | SUBSTITUTION_APPROVAL_REQUIRED | SUBSTITUTION_APPROVED | ... */
+    status: string
+    differences: {
+      productId: string
+      productType: string
+      name: string | null
+      contractedQuantity: number
+      installedQuantity: number
+    }[]
+  } | null
+  requiresPanelAndInverterAssets?: boolean
+}

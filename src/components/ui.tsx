@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons'
-import type { ComponentProps, PropsWithChildren, ReactNode } from 'react'
+import { createContext, useContext, type ComponentProps, type PropsWithChildren, type ReactNode } from 'react'
 import {
   ActivityIndicator,
   Pressable,
@@ -27,11 +27,14 @@ export function Screen({
   refreshing,
   onRefresh,
   contentStyle,
+  footer,
   ...props
 }: PropsWithChildren<ScrollViewProps> & {
   refreshing?: boolean
   onRefresh?: () => void
   contentStyle?: ViewStyle
+  /** Thanh nút cố định ở đáy màn, nằm ngoài phần cuộn */
+  footer?: ReactNode
 }) {
   const theme = useAppTheme()
   const insets = useSafeAreaInsets()
@@ -41,7 +44,7 @@ export function Screen({
         {...props}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.screen, { paddingBottom: 16 + insets.bottom }, contentStyle]}
+        contentContainerStyle={[styles.screen, { paddingBottom: footer ? 16 : 16 + insets.bottom }, contentStyle]}
         refreshControl={
           onRefresh ? (
             <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={theme.brand} />
@@ -50,9 +53,22 @@ export function Screen({
       >
         {children}
       </ScrollView>
+      {footer ? (
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: 8 + insets.bottom, backgroundColor: theme.canvas, borderTopColor: theme.border },
+          ]}
+        >
+          {footer}
+        </View>
+      ) : null}
     </SafeAreaView>
   )
 }
+
+/** Thứ nằm đầu / cuối hàng tiêu đề trên mọi trang của một khung: nút mở menu, chuông thông báo */
+export const PageHeaderSlots = createContext<{ leading?: ReactNode; trailing?: ReactNode }>({})
 
 export function PageHeader({
   title,
@@ -67,8 +83,10 @@ export function PageHeader({
   action?: ReactNode
 }) {
   const theme = useAppTheme()
+  const slots = useContext(PageHeaderSlots)
   return (
     <View style={styles.pageHeader}>
+      {slots.leading}
       <View style={styles.pageHeaderCopy}>
         <Text accessibilityRole="header" style={[styles.pageTitle, { color: theme.text }]}>
           {title}
@@ -77,6 +95,7 @@ export function PageHeader({
         {alert ? <Text style={[styles.pageAlert, { color: theme.danger }]}>{alert}</Text> : null}
       </View>
       {action}
+      {slots.trailing}
     </View>
   )
 }
@@ -238,11 +257,17 @@ function toneColor(theme: AppTheme, tone: Tone) {
   return theme.textMuted
 }
 
-export function Field({ label, error, ...props }: TextInputProps & { label: string; error?: string }) {
+export function Field({
+  label,
+  error,
+  hint,
+  ...props
+}: TextInputProps & { label: string; error?: string; hint?: string }) {
   const theme = useAppTheme()
   return (
     <View style={styles.field}>
       <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+      {hint ? <Text style={[styles.hint, { color: theme.textMuted }]}>{hint}</Text> : null}
       <TextInput
         {...props}
         accessibilityLabel={label}
@@ -255,6 +280,88 @@ export function Field({ label, error, ...props }: TextInputProps & { label: stri
         ]}
       />
       {error ? <Text style={[styles.fieldError, { color: theme.danger }]}>{error}</Text> : null}
+    </View>
+  )
+}
+
+/** Chọn một trong vài giá trị bằng nút; `value` null là chưa chọn */
+export function ChoiceGroup<T extends string | number>({
+  label,
+  value,
+  options,
+  onChange,
+  error,
+  disabled,
+}: {
+  label: string
+  value: T | null
+  options: readonly { value: T; label: string }[]
+  onChange: (value: T) => void
+  error?: string
+  disabled?: boolean
+}) {
+  const theme = useAppTheme()
+  return (
+    <View style={styles.field} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+      <View style={styles.choices}>
+        {options.map((option) => {
+          const selected = value === option.value
+          return (
+            <Pressable
+              key={String(option.value)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected, disabled }}
+              disabled={disabled}
+              onPress={() => onChange(option.value)}
+              style={({ pressed }) => [
+                styles.choice,
+                {
+                  borderColor: selected ? theme.brand : error ? theme.danger : theme.border,
+                  backgroundColor: selected ? theme.brandSoft : pressed ? theme.surfacePressed : theme.surface,
+                },
+                disabled && styles.disabled,
+              ]}
+            >
+              <Text style={[styles.choiceText, { color: selected ? theme.brandText : theme.text }]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          )
+        })}
+      </View>
+      {error ? <Text style={[styles.fieldError, { color: theme.danger }]}>{error}</Text> : null}
+    </View>
+  )
+}
+
+/** Tab gạch chân trong trang, tràn ngang */
+export function TabBar<T extends string>({
+  tabs,
+  value,
+  onChange,
+}: {
+  tabs: readonly { value: T; label: string }[]
+  value: T
+  onChange: (value: T) => void
+}) {
+  const theme = useAppTheme()
+  return (
+    <View accessibilityRole="tablist" style={[styles.tabs, { borderBottomColor: theme.border }]}>
+      {tabs.map((tab) => {
+        const active = tab.value === value
+        return (
+          <Pressable
+            key={tab.value}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
+            onPress={() => onChange(tab.value)}
+            style={[styles.tab, active && { borderBottomColor: theme.brand }]}
+          >
+            <Text style={[styles.tabText, { color: active ? theme.text : theme.textMuted }]}>{tab.label}</Text>
+          </Pressable>
+        )
+      })}
     </View>
   )
 }
@@ -328,6 +435,7 @@ export const uiStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  footer: { paddingHorizontal: SCREEN_PADDING, paddingTop: 8, gap: 6, borderTopWidth: StyleSheet.hairlineWidth },
   screen: { flexGrow: 1, paddingHorizontal: SCREEN_PADDING, paddingTop: 8, gap: 12 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
   pageHeaderCopy: { flex: 1, gap: 2 },
@@ -369,6 +477,26 @@ const styles = StyleSheet.create({
   input: { minHeight: 44, borderWidth: 1, borderRadius: 6, paddingHorizontal: 12, fontSize: 15, lineHeight: 20 },
   textarea: { minHeight: 72, paddingTop: 10, textAlignVertical: 'top' },
   fieldError: { fontSize: 13, lineHeight: 18 },
+  hint: { fontSize: 13, lineHeight: 18 },
+  tabs: {
+    flexDirection: 'row',
+    gap: 16,
+    marginHorizontal: -SCREEN_PADDING,
+    paddingHorizontal: SCREEN_PADDING,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  tab: { minHeight: 40, justifyContent: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  tabText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
+  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  choice: {
+    minHeight: 40,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  choiceText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   state: { paddingVertical: 16, gap: 4 },
   stateTitle: { fontSize: 15, lineHeight: 21, fontWeight: '700' },
   stateDescription: { fontSize: 14, lineHeight: 20 },

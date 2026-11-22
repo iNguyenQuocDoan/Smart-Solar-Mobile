@@ -23,33 +23,21 @@ export const DEFAULT_RATE_LIMIT_WAIT_SECONDS = 60
 
 export const NOT_BOUND_TEXT = 'Công trình chưa gắn thiết bị đo'
 export const NOT_MEASURED_TEXT = 'Chưa đo được'
-export const MONITORING_UNAVAILABLE_TEXT = 'Hệ thống giám sát chưa sẵn sàng. Vui lòng thử lại sau.'
+export const MONITORING_UNAVAILABLE_TEXT = 'Chưa xem được số đo, thử lại sau.'
 
-type ConnectionMeta = { label: string; tone: Tone; hint: string }
+type ConnectionMeta = { label: string; tone: Tone }
 
 /** Nhãn trạng thái kết nối, giống web (Solar-client src/common/iot.ts) */
 const CONNECTION: Record<string, ConnectionMeta> = {
-  ONLINE: { label: 'Đang kết nối', tone: 'success', hint: 'Thiết bị đang gửi số đo đều đặn.' },
-  OFFLINE: {
-    label: 'Mất kết nối',
-    tone: 'warning',
-    hint: 'Thiết bị đã ngừng gửi số đo. Số đo cũ vẫn còn trong lịch sử.',
-  },
-  NO_DATA: {
-    label: 'Chưa có số đo',
-    tone: 'info',
-    hint: 'Thiết bị đã gắn vào công trình nhưng chưa gửi số đo nào. Chưa có số đo không có nghĩa là dòng điện bằng 0.',
-  },
-  UNASSIGNED: { label: 'Chưa gắn công trình', tone: 'neutral', hint: 'Thiết bị chưa được gắn vào công trình nào.' },
-  DISABLED: {
-    label: 'Thiết bị bị khoá',
-    tone: 'danger',
-    hint: 'Smart Solar đã khoá thiết bị nên không nhận và không hiện số đo hiện tại.',
-  },
+  ONLINE: { label: 'Đang kết nối', tone: 'success' },
+  OFFLINE: { label: 'Mất kết nối', tone: 'warning' },
+  NO_DATA: { label: 'Chưa có số đo', tone: 'info' },
+  UNASSIGNED: { label: 'Chưa gắn công trình', tone: 'neutral' },
+  DISABLED: { label: 'Thiết bị bị khoá', tone: 'danger' },
 }
 
 export function connectionMeta(status: string | null | undefined): ConnectionMeta {
-  return (status ? CONNECTION[status] : undefined) ?? { label: 'Không rõ trạng thái', tone: 'neutral', hint: '' }
+  return (status ? CONNECTION[status] : undefined) ?? { label: 'Không rõ trạng thái', tone: 'neutral' }
 }
 
 // ---------- Hỏi lại số đo mới nhất ----------
@@ -290,7 +278,7 @@ export function isMonitoringUnavailable(error: unknown) {
 export function iotErrorMessage(error: unknown): string {
   const e = asError(error)
   if (!e) return error instanceof Error ? error.message : 'Đã xảy ra lỗi. Vui lòng thử lại.'
-  if (e.status === 0) return 'Mất kết nối mạng hoặc máy chủ không phản hồi. Kiểm tra mạng rồi thử lại.'
+  if (e.status === 0) return 'Mất kết nối mạng. Kiểm tra mạng rồi thử lại.'
   if (isNoBinding(e)) return `${NOT_BOUND_TEXT}.`
   if (e.code === 'INSTALLATION_PROJECT_NOT_FOUND') return 'Không tìm thấy công trình.'
   if (e.status === 403 || e.code === 'AUTH_FORBIDDEN')

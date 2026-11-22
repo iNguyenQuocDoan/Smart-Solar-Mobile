@@ -2,9 +2,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native'
 import { useReleaseJob, useTechJob } from '@/hooks/queries'
+import { useOnsiteSurvey } from '@/hooks/techJob'
 import type { TechnicianJob } from '@/lib/api/types'
-import { appointmentStatus, assignmentSourceLabel, surfaceLabel } from '@/lib/status'
-import { formatAppointment, formatMoment, shortCode } from '@/lib/format'
+import { appointmentStatus, surfaceLabel } from '@/lib/status'
+import { formatAppointment, shortCode } from '@/lib/format'
 import {
   BackButton,
   Button,
@@ -23,12 +24,12 @@ import { useAppTheme } from '@/theme/theme'
 const number = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
 const n = (value: number | null | undefined) => (value == null ? '—' : number.format(value))
 
-function nextStep(job: TechnicianJob, now: number) {
-  if (job.status === 'COMPLETED') return 'Buổi khảo sát này đã xong.'
-  if (job.status === 'CANCELLED') return 'Lịch này đã huỷ.'
-  if (new Date(job.endsAt).getTime() < now)
-    return 'Đã qua giờ hẹn. Nếu chưa khảo sát được, báo bộ phận kinh doanh để đổi giờ.'
-  return 'Tới công trình đúng giờ hẹn. Gọi khách trước khi đi và mang theo số liệu khách khai bên dưới.'
+const WAITING = new Set(['ACCEPTED', 'ASSIGNED'])
+
+/** Các bước bên dưới đã nói việc tiếp theo; chỉ nhắc khi quá giờ mà chưa bắt đầu khảo sát */
+function overdueNote(job: TechnicianJob, surveyStarted: boolean, now: number) {
+  if (!WAITING.has(job.status) || surveyStarted) return null
+  return new Date(job.endsAt).getTime() < now ? 'Quá giờ hẹn. Chưa khảo sát được thì báo kinh doanh đổi giờ.' : null
 }
 
 // Trả lại việc đã nhận (bắt buộc ghi lý do), lịch quay về chờ kỹ thuật viên khác trong khu vực nhận
@@ -99,6 +100,8 @@ export function TechJobDetailScreen() {
   const query = useTechJob(id ?? '')
   const [now] = useState(() => Date.now())
   const job = query.data
+  const survey = useOnsiteSurvey(id ?? '', { enabled: job ? WAITING.has(job.status) : false })
+  const surveyStarted = Boolean(survey.data)
 
   // Tìm theo địa chỉ: toạ độ lưu kèm địa điểm chỉ là điểm giữa khu vực, không dùng để chỉ đường
   function openMap() {
@@ -109,10 +112,23 @@ export function TechJobDetailScreen() {
   }
 
   const status = job ? appointmentStatus(job.status, 'technician') : null
-  const canRelease = job
-    ? (job.status === 'ACCEPTED' || job.status === 'ASSIGNED') && new Date(job.startsAt).getTime() > now
-    : false
-  const how = job?.assignmentSource ? assignmentSourceLabel(job.assignmentSource) : 'Nhận'
+  const canRelease = job ? WAITING.has(job.status) && !surveyStarted && new Date(job.startsAt).getTime() > now : false
+  const note = job && survey.isFetched ? overdueNote(job, surveyStarted, now) : null
+  const pre = job?.preSurvey
+  const declared = pre
+    ? [
+        pre.surfaceWidthM != null
+          ? { label: 'Rộng × dài', value: `${n(pre.surfaceWidthM)} × ${n(pre.surfaceLengthM)} m` }
+          : null,
+        pre.usableAreaM2 != null || pre.totalAreaM2 != null
+          ? { label: 'Dùng được / tổng', value: `${n(pre.usableAreaM2)} / ${n(pre.totalAreaM2)} m²` }
+          : null,
+        pre.surfaceTiltDegree != null ? { label: 'Độ dốc', value: `${n(pre.surfaceTiltDegree)}°` } : null,
+        pre.obstacleCount > 0 || pre.hasObstruction
+          ? { label: 'Vật cản', value: pre.obstacleCount > 0 ? `${pre.obstacleCount} vật cản` : 'Có' }
+          : null,
+      ].filter((row) => row !== null)
+    : []
 
   return (
     <Screen refreshing={query.isRefetching} onRefresh={() => void query.refetch()}>
@@ -127,13 +143,13 @@ export function TechJobDetailScreen() {
               <Text style={[styles.code, { color: theme.textMuted }]}>Mã {shortCode(job.surveyRequestId)}</Text>
             </View>
           </View>
-          <Panel>
-            <SectionTitle detail={`${how} lúc ${formatMoment(job.acceptedAt ?? job.assignedAt)}.`}>
-              Tình hình
-            </SectionTitle>
-            <Text style={[styles.body, { color: theme.text }]}>{nextStep(job, now)}</Text>
-            {canRelease ? <ReleaseAction id={job.appointmentId} /> : null}
-          </Panel>
+          {note || canRelease ? (
+            <Panel>
+              <SectionTitle>Tình hình</SectionTitle>
+              {note ? <Text style={[styles.body, { color: theme.danger }]}>{note}</Text> : null}
+              {canRelease ? <ReleaseAction id={job.appointmentId} /> : null}
+            </Panel>
+          ) : null}
           <JobSteps job={job} />
           <Panel>
             <SectionTitle>Công trình</SectionTitle>
@@ -146,43 +162,22 @@ export function TechJobDetailScreen() {
               }
             />
             <KeyValue label="Bề mặt" value={surfaceLabel(job.property.installationSurfaceType)} />
-            <KeyValue label="Vật liệu" value={job.property.surfaceMaterial || '—'} />
+            {job.property.surfaceMaterial ? <KeyValue label="Vật liệu" value={job.property.surfaceMaterial} /> : null}
             <Button label="Mở bản đồ" icon="map-outline" variant="secondary" compact onPress={openMap} />
           </Panel>
-          <Panel>
-            <SectionTitle>Số liệu khách khai</SectionTitle>
-            <KeyValue
-              label="Rộng × dài"
-              value={
-                job.preSurvey.surfaceWidthM == null
-                  ? '—'
-                  : `${n(job.preSurvey.surfaceWidthM)} × ${n(job.preSurvey.surfaceLengthM)} m`
-              }
-            />
-            <KeyValue
-              label="Dùng được / tổng"
-              value={`${n(job.preSurvey.usableAreaM2)} / ${n(job.preSurvey.totalAreaM2)} m²`}
-            />
-            <KeyValue
-              label="Độ dốc"
-              value={job.preSurvey.surfaceTiltDegree == null ? '—' : `${n(job.preSurvey.surfaceTiltDegree)}°`}
-            />
-            <KeyValue
-              label="Vật cản"
-              value={
-                job.preSurvey.obstacleCount > 0
-                  ? `${job.preSurvey.obstacleCount} vật cản`
-                  : job.preSurvey.hasObstruction
-                    ? 'Có'
-                    : 'Không'
-              }
-            />
-          </Panel>
+          {declared.length ? (
+            <Panel>
+              <SectionTitle>Số liệu khách khai</SectionTitle>
+              {declared.map((row) => (
+                <KeyValue key={row.label} label={row.label} value={row.value} />
+              ))}
+            </Panel>
+          ) : null}
           <Panel>
             <SectionTitle>Khách hàng</SectionTitle>
             <KeyValue label="Họ tên" value={job.customer.fullName || '—'} />
             <KeyValue label="Điện thoại" value={job.customer.phone || '—'} />
-            <KeyValue label="Email" value={job.customer.email || '—'} />
+            {job.customer.email ? <KeyValue label="Email" value={job.customer.email} /> : null}
             {job.customer.phone ? (
               <Button
                 label="Gọi khách"
@@ -192,7 +187,7 @@ export function TechJobDetailScreen() {
                 onPress={() => void Linking.openURL(`tel:${job.customer.phone}`)}
               />
             ) : null}
-            <KeyValue label="Ghi chú" value={job.customerNote || 'Không có ghi chú.'} />
+            {job.customerNote ? <KeyValue label="Ghi chú" value={job.customerNote} /> : null}
           </Panel>
         </>
       ) : null}

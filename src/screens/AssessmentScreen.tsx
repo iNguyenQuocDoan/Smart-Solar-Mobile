@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import {
+  ChoiceGroup,
   BackButton,
   Button,
   Field,
@@ -153,49 +154,6 @@ function obstacleArea(obstacles: AssessmentObstacle[], width: number, length: nu
     }
   }
   return area
-}
-
-function ChoiceGroup<T extends string | number>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string
-  value: T
-  options: { value: T; label: string }[]
-  onChange: (value: T) => void
-}) {
-  const theme = useAppTheme()
-  return (
-    <View style={styles.choiceGroup}>
-      <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
-      <View style={styles.choices}>
-        {options.map((option) => {
-          const selected = value === option.value
-          return (
-            <Pressable
-              key={String(option.value)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected }}
-              onPress={() => onChange(option.value)}
-              style={({ pressed }) => [
-                styles.choice,
-                {
-                  borderColor: selected ? theme.brand : theme.border,
-                  backgroundColor: selected ? theme.brandSoft : pressed ? theme.surfacePressed : theme.surface,
-                },
-              ]}
-            >
-              <Text style={[styles.choiceText, { color: selected ? theme.brandText : theme.text }]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          )
-        })}
-      </View>
-    </View>
-  )
 }
 
 // Chọn phường, xã của TP.HCM từ danh mục của backend, gõ không dấu vẫn tìm được.
@@ -756,7 +714,7 @@ export function AssessmentScreen() {
   } else if (step === 2) {
     content = (
       <Panel>
-        <SectionTitle detail="Đo trên bề mặt nghiêng, đơn vị mét.">Mặt lắp</SectionTitle>
+        <SectionTitle detail="Đo theo mặt nghiêng">Mặt lắp</SectionTitle>
         <View style={styles.twoColumns}>
           <View style={styles.column}>
             <Field
@@ -891,7 +849,7 @@ export function AssessmentScreen() {
           />
         </Panel>
         <Text style={[styles.noticeText, { color: theme.textMuted }]}>
-          Mô phỏng tấm pin không bắt buộc. Sau khi gửi, bạn chọn giờ để kỹ thuật viên tới đo lại tại công trình.
+          Gửi xong, bạn chọn giờ để kỹ thuật viên tới đo lại.
         </Text>
       </View>
     )
@@ -931,18 +889,8 @@ const styles = StyleSheet.create({
   stepDot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   stepNumber: { fontSize: 12, lineHeight: 16, fontWeight: '700' },
   stepLabel: { marginTop: 4, textAlign: 'center', fontSize: 13, lineHeight: 18, fontWeight: '600' },
-  choiceGroup: { gap: 6 },
   label: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
   hint: { fontSize: 13, lineHeight: 18 },
-  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  choice: {
-    minHeight: 40,
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   choiceText: { fontSize: 14, lineHeight: 20, fontWeight: '700' },
   wardPicker: { gap: 6 },
   wardList: { borderWidth: 1, borderRadius: 6, overflow: 'hidden' },

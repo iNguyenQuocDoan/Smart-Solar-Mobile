@@ -26,6 +26,7 @@ import {
   canWithdraw,
   coverageText,
   customerDispatchStatus,
+  customerNextStep,
   customerStatus,
   historyStatusLabel,
   isActiveDispatch,
@@ -150,29 +151,35 @@ function BookingForm({
           />
         )
       ) : null}
-      <Field
-        label="Ghi chú cho kỹ thuật viên"
-        value={note}
-        onChangeText={setNote}
-        placeholder="Ví dụ: gọi trước khi đến"
-        multiline
-        maxLength={300}
-      />
+      {openSlots.length ? (
+        <Field
+          label="Ghi chú cho kỹ thuật viên"
+          value={note}
+          onChangeText={setNote}
+          placeholder="Ví dụ: gọi trước khi đến"
+          multiline
+          maxLength={300}
+        />
+      ) : null}
       {mutation.error ? (
         <Text accessibilityRole="alert" style={[styles.error, { color: theme.danger }]}>
           {mutation.error.message}
         </Text>
       ) : null}
       {bookingUncovered ? dispatchButton : null}
-      <View style={styles.actions}>
-        {mode === 'reschedule' ? <Button label="Giữ lịch cũ" variant="quiet" onPress={onDone} compact /> : null}
-        <Button
-          label={mode === 'book' ? 'Xác nhận đặt giờ' : 'Xác nhận giờ mới'}
-          onPress={() => void submit()}
-          disabled={!selected}
-          loading={mutation.isPending}
-        />
-      </View>
+      {mode === 'reschedule' || openSlots.length ? (
+        <View style={styles.actions}>
+          {mode === 'reschedule' ? <Button label="Giữ lịch cũ" variant="quiet" onPress={onDone} compact /> : null}
+          {openSlots.length ? (
+            <Button
+              label={mode === 'book' ? 'Xác nhận đặt giờ' : 'Xác nhận giờ mới'}
+              onPress={() => void submit()}
+              disabled={!selected}
+              loading={mutation.isPending}
+            />
+          ) : null}
+        </View>
+      ) : null}
     </Panel>
   )
 }
@@ -205,7 +212,7 @@ export function CustomerRequestDetailScreen() {
     : null
 
   function confirmCancel() {
-    Alert.alert('Huỷ lịch khảo sát?', 'Giờ đang giữ sẽ được trả lại cho hệ thống.', [
+    Alert.alert('Huỷ lịch khảo sát?', 'Giờ đang giữ sẽ được nhả cho người khác đặt.', [
       { text: 'Giữ lịch', style: 'cancel' },
       { text: 'Huỷ lịch', style: 'destructive', onPress: () => void cancel.mutateAsync().catch(() => undefined) },
     ])
@@ -242,7 +249,6 @@ export function CustomerRequestDetailScreen() {
           {isClosedRequest(request) ? (
             <StateView
               title="Yêu cầu này đã đóng"
-              description="Yêu cầu đã đóng không mở lại được. Muốn khảo sát lại, gửi đánh giá mới cho công trình."
               action={<Button label="Gửi đánh giá mới" onPress={() => router.push('/customer/assessment')} compact />}
             />
           ) : canBook(request) ? (
@@ -286,7 +292,10 @@ export function CustomerRequestDetailScreen() {
                   label="Kỹ thuật viên"
                   value={request.appointment.assignedTechnicianName ?? 'Chưa có kỹ thuật viên nhận'}
                 />
-                <KeyValue label="Ghi chú của bạn" value={request.appointment.customerNote || '—'} />
+                {customerNextStep(request) ? <KeyValue label="Tiếp theo" value={customerNextStep(request)!} /> : null}
+                {request.appointment.customerNote ? (
+                  <KeyValue label="Ghi chú của bạn" value={request.appointment.customerNote} />
+                ) : null}
                 {request.appointment.canCustomerChange ? (
                   <View style={styles.actionRow}>
                     <Button

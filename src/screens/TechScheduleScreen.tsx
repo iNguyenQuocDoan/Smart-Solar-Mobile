@@ -26,13 +26,10 @@ export function TechScheduleScreen() {
       <QueryState loading={query.isPending} error={query.error} onRetry={() => void query.refetch()} />
       {schedule ? (
         <>
-          <Text style={[styles.summary, { color: theme.textMuted }]}>
-            {schedule.appointmentCount} lịch, nghỉ {schedule.bufferBetweenAppointmentsMinutes} phút giữa hai lịch
-          </Text>
           {schedule.conflictCount > 0 ? (
             <StatusText tone="warning">
-              {schedule.conflictCount} lịch bắt đầu khi chưa đủ {schedule.bufferBetweenAppointmentsMinutes} phút nghỉ
-              sau lịch trước
+              {schedule.conflictCount} lịch sát giờ lịch trước (cần nghỉ {schedule.bufferBetweenAppointmentsMinutes}{' '}
+              phút)
             </StatusText>
           ) : null}
           {items.length === 0 ? (
@@ -73,7 +70,6 @@ export function TechScheduleScreen() {
 const styles = StyleSheet.create({
   dayNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   date: { flex: 1, textAlign: 'center', fontSize: 15, lineHeight: 21, fontWeight: '700', textTransform: 'capitalize' },
-  summary: { fontSize: 13, lineHeight: 18 },
   row: { alignItems: 'flex-start' },
   time: { fontSize: 14, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
   copy: { flex: 1, gap: 1 },

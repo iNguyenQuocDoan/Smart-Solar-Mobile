@@ -108,6 +108,25 @@ export function customerStatus(request: RequestState): Meta {
   )
 }
 
+/**
+ * Khách cần biết bước tiếp theo khi đã có lịch hẹn: ai đang làm gì, xong rồi thì xem gì. Chưa có lịch thì màn đã có form đặt giờ,
+ * không cần câu nhắc
+ */
+export function customerNextStep(request: RequestState): string | null {
+  const acceptance = request.appointment?.acceptanceStatus
+  if (request.status === 'COMPLETED' || acceptance === 'COMPLETED')
+    return 'Xem báo giá và hợp đồng trên web Smart Solar.'
+  if (isClosedRequest(request) || !request.appointment) return null
+  if (acceptance === 'WAITING_FOR_TECHNICIAN') return 'Smart Solar báo bạn khi có kỹ thuật viên nhận lịch.'
+  if (acceptance === 'NEEDS_STAFF') return 'Nhân viên đang xếp kỹ thuật viên, xong sẽ báo bạn.'
+  if (acceptance === 'CONFIRMED') return 'Kỹ thuật viên tới đo mái đúng giờ hẹn.'
+  return null
+}
+
+/** Lịch khảo sát của kỹ thuật viên còn phải làm: chưa hết giờ, hoặc quá giờ mà chưa khảo sát */
+export const isUpcomingJob = (job: { isOverdue: boolean; endsAt: string }, now: number) =>
+  job.isOverdue || new Date(job.endsAt).getTime() >= now
+
 export function appointmentStatus(status: string, viewer: Viewer): Meta {
   const label =
     (viewer === 'technician' ? TECHNICIAN_LABELS[status] : undefined) ?? APPOINTMENT_LABELS[status] ?? 'Đang cập nhật'

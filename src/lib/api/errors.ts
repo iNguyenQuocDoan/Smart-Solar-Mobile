@@ -141,6 +141,23 @@ const messages: Record<string, string> = {
   PAYMENT_ALREADY_PAID: 'Khoản này đã được thanh toán. Đã tải lại.',
   PAYMENT_CASH_SELECTED: 'Đã chọn trả tiền mặt cho khoản này. Bỏ chọn tiền mặt trước nếu muốn trả qua PayOS.',
   PAYMENT_CASH_NOT_SELECTED: 'Khách chưa chọn trả tiền mặt cho khoản này, hoặc vừa bỏ chọn. Đã tải lại.',
+  // Lắp đặt của kỹ thuật viên
+  INSTALLATION_INVALID_STATE: 'Công trình vừa đổi trạng thái nên chưa làm được thao tác này. Đã tải lại.',
+  INSTALLATION_STALE_REVISION: 'Công trình vừa được cập nhật ở nơi khác. Đã tải lại, kiểm tra rồi thử lại.',
+  INSTALLATION_REASON_REQUIRED: 'Ghi lý do.',
+  INSTALLATION_ASSIGNMENT_NOT_PENDING: 'Phân công này không còn chờ bạn trả lời.',
+  INSTALLATION_ASSIGNMENT_NOT_ACCEPTED: 'Nhận việc trước rồi mới thi công được.',
+  INSTALLATION_TOO_EARLY_TO_START: 'Chưa tới ngày thi công nên chưa bắt đầu được.',
+  INSTALLATION_SCHEDULE_EXPIRED: 'Đã hết khung giờ thi công. Báo quản lý xếp lại lịch trước khi bắt đầu.',
+  INSTALLATION_CHECKLIST_INCOMPLETE: 'Quản lý chưa hoàn tất các hạng mục bắt buộc trước thi công.',
+  INSTALLATION_EVIDENCE_REQUIRED: 'Cần ít nhất một ảnh thi công của lượt này trước khi gửi báo cáo hoàn thành.',
+  INSTALLATION_ASSETS_REQUIRED: 'Ghi tấm pin và inverter đã lắp trước khi gửi báo cáo hoàn thành.',
+  INSTALLATION_DUPLICATE_SERIAL: 'Số serial này đã được ghi trên hệ thống. Kiểm tra lại.',
+  INSTALLATION_ASSET_PRODUCT_VALIDATION_FAILED:
+    'Sản phẩm đã chọn không đúng loại thiết bị hoặc đã ngừng bán. Chọn lại.',
+  INSTALLATION_ASSET_QUANTITY_VALIDATION_FAILED: 'Số lượng chưa hợp lệ: ghi từ 1 đến 10.000 thiết bị.',
+  INSTALLATION_SUBSTITUTION_APPROVAL_REQUIRED:
+    'Thiết bị đã ghi khác hợp đồng. Chờ quản lý duyệt thay đổi rồi mới gửi được báo cáo hoàn thành.',
 }
 
 const statusMessages: Record<number, string> = {

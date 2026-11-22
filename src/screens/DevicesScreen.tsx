@@ -31,7 +31,7 @@ function AssetRow({ asset, handed, last }: { asset: ProjectAsset; handed: Projec
       <View style={styles.copy}>
         <Text style={[styles.name, { color: theme.text }]}>{name}</Text>
         <Text style={[styles.line, { color: theme.textMuted }]}>
-          {asset.serialNumber ? `Số seri ${asset.serialNumber}` : `${asset.quantity} thiết bị, ghi theo số lượng`}
+          {asset.serialNumber ? `Số seri ${asset.serialNumber}` : `Số lượng ${asset.quantity}`}
           {asset.positionCode ? `, ${asset.positionCode}` : ''}
         </Text>
         {warranty ? <Text style={[styles.line, { color: theme.text }]}>{warranty}</Text> : null}

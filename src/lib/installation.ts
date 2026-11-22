@@ -15,6 +15,18 @@ const PROJECT_STATUS: Record<string, { label: string; tone: Tone }> = {
   CANCELLED: { label: 'Đã huỷ', tone: 'neutral' },
 }
 
+// Bước tiếp theo khách cần biết; nghiệm thu chỉ có trên web
+const PROJECT_NEXT: Record<string, string> = {
+  PENDING_ASSIGNMENT: 'Smart Solar báo lịch lắp đặt cho bạn.',
+  PENDING_TECHNICIAN_ACCEPTANCE: 'Smart Solar báo lịch lắp đặt cho bạn.',
+  SCHEDULED: 'Kỹ thuật viên tới lắp theo lịch trên.',
+  IN_PROGRESS: 'Lắp xong, bạn được mời nghiệm thu.',
+  PENDING_CUSTOMER_ACCEPTANCE: 'Nghiệm thu công trình trên web Smart Solar.',
+  REWORK_REQUIRED: 'Sửa xong, bạn được mời nghiệm thu lại.',
+}
+
+export const projectNextStep = (status: string) => PROJECT_NEXT[status] ?? null
+
 export function projectStatus(status: string) {
   return PROJECT_STATUS[status] ?? { label: 'Đang xử lý', tone: 'info' as Tone }
 }

@@ -1,4 +1,5 @@
 import { ApiError, apiDelete, apiGet, apiPost, apiPut } from '@/lib/api/client'
+import { uploadImage, type PickedImage } from '@/lib/api/files'
 import type {
   AcceptResult,
   AuthTokens,
@@ -8,11 +9,13 @@ import type {
   CustomerAppointment,
   CustomerDispatch,
   CustomerDraftItem,
+  CustomerNotification,
   CustomerRequest,
   CustomerSite,
   CustomerRequestDetail,
   CustomerProject,
   EnergyMonitoring,
+  InstallationProject,
   IotLatestReading,
   IotProjectDevice,
   IotReadingHistory,
@@ -27,6 +30,7 @@ import type {
   Product,
   ProductPage,
   ReleaseResult,
+  SignedFileUrl,
   SurveySlots,
   TechnicianAppointment,
   TechnicianJob,
@@ -44,6 +48,9 @@ export const authService = {
   login: (email: string, password: string) => apiPost<AuthTokens>('/auth/login', { email, password }),
   refresh: (refreshToken: string) => apiPost<AuthTokens>('/auth/refresh', { refreshToken }),
   logout: (refreshToken: string) => apiPost<{ accepted?: boolean }>('/auth/logout', { refreshToken }),
+  /** Đổi xong backend thu hồi mọi phiên của tài khoản */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiPost('/auth/change-password', { currentPassword, newPassword }),
 }
 
 export const customerService = {
@@ -246,4 +253,36 @@ export const onsiteSurveyService = {
     apiGet<OnSiteSurveyAttachmentUrlView>(
       `${survey(appointmentId)}/attachments/${encode(attachmentId)}/url?disposition=inline`,
     ),
+}
+export const notificationService = {
+  list: () => apiGet<CustomerNotification[]>('/customers/me/after-sales/notifications'),
+  markRead: (id: string) => apiPost<CustomerNotification>(`/customers/me/after-sales/notifications/${encode(id)}/read`),
+}
+/** Công trình lắp đặt được giao; chỉ kỹ thuật viên của phân công đang hiệu lực làm được, người khác nhận 404 */
+const installationPath = (id: string) => `/technicians/me/installation-projects/${encode(id)}`
+
+export const techInstallationService = {
+  list: () => apiGet<InstallationProject[]>('/technicians/me/installation-projects'),
+  get: (id: string) => apiGet<InstallationProject>(installationPath(id)),
+  accept: (id: string, revision: number) =>
+    apiPost<InstallationProject>(`${installationPath(id)}/accept`, { expectedRevision: revision }),
+  /** Lý do bắt buộc, quản lý thấy lý do */
+  decline: (id: string, revision: number, reason: string) =>
+    apiPost<InstallationProject>(`${installationPath(id)}/decline`, { reason, expectedRevision: revision }),
+  start: (id: string) => apiPost<InstallationProject>(`${installationPath(id)}/start`),
+  addPhoto: async (id: string, image: PickedImage) => {
+    const fileId = await uploadImage(image, 'INSTALLATION_EVIDENCE')
+    return apiPost<InstallationProject>(`${installationPath(id)}/evidence`, { fileId, caption: null })
+  },
+  photoUrl: (id: string, evidenceId: string) =>
+    apiGet<SignedFileUrl>(`${installationPath(id)}/evidence/${encode(evidenceId)}/url?disposition=inline`),
+  /** Không xoá được thiết bị đã ghi */
+  addAssets: (id: string, assets: unknown[]) =>
+    apiPost<InstallationProject>(`${installationPath(id)}/assets`, { assets }),
+  /** Cần ảnh của lượt hiện tại, tấm pin và inverter; xong thì chờ quản lý nghiệm thu */
+  report: (id: string, revision: number, completionReport: string) =>
+    apiPost<InstallationProject>(`${installationPath(id)}/completion-report`, {
+      completionReport,
+      expectedRevision: revision,
+    }),
 }

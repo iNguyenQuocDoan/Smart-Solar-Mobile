@@ -45,6 +45,7 @@ import {
   MONITORING_UNAVAILABLE_TEXT,
   nextLatestPollMs,
   NOT_BOUND_TEXT,
+  NOT_MEASURED_TEXT,
   quantityText,
   shiftDay,
   vnToday,
@@ -52,7 +53,7 @@ import {
 import { useAppTheme } from '@/theme/theme'
 
 // Giám sát điện năng của khách: chọn công trình, xem dòng điện thiết bị đo được, trạng thái kết nối và lịch sử. Chỉ hiện số backend
-// trả; công suất, điện năng, mua / bán điện ghi "Chưa đo được", không tự tính từ dòng điện. Sản lượng dự kiến (mô phỏng) nằm ở
+// trả; công suất, điện năng, mua / bán điện chỉ hiện khi đã đo được, không tự tính từ dòng điện. Sản lượng dự kiến (mô phỏng) nằm ở
 // phần riêng, không bao giờ lẫn với số đo
 
 function ProjectPicker({
@@ -67,7 +68,7 @@ function ProjectPicker({
   const theme = useAppTheme()
   return (
     <View>
-      <SectionTitle detail="Mỗi công trình có thiết bị đo riêng">Chọn công trình</SectionTitle>
+      <SectionTitle>Chọn công trình</SectionTitle>
       {projects.map((p, index) => {
         const active = p.projectId === selected
         return (
@@ -118,7 +119,7 @@ function LatestBlock({
   return (
     <Panel>
       <View style={styles.spread}>
-        <SectionTitle>Dòng điện đo được</SectionTitle>
+        <SectionTitle detail={device.displayName}>Dòng điện đo được</SectionTitle>
         <StatusText tone={meta.tone}>{meta.label}</StatusText>
       </View>
       <View style={styles.reading}>
@@ -146,21 +147,13 @@ function LatestBlock({
           </Text>
         ) : null}
       </View>
-      {status === 'OFFLINE' && lastAt ? (
-        <Text style={[styles.body, styles.tnum, { color: theme.warning }]}>
-          Mất kết nối, số đo cuối nhận lúc {formatReadingTime(lastAt)}
+      {!reading && lastAt && status !== 'DISABLED' ? (
+        <Text style={[styles.meta, styles.tnum, { color: theme.textMuted }]}>
+          Số đo cuối lúc {formatReadingTime(lastAt)}
         </Text>
-      ) : null}
-      {meta.hint && status !== 'ONLINE' ? (
-        <Text style={[styles.body, { color: theme.textMuted }]}>{meta.hint}</Text>
       ) : null}
       {latest.isError && !unavailable ? (
-        <Text style={[styles.body, { color: theme.danger }]}>
-          {iotErrorMessage(latest.error)}
-          {isFinalReadError(latest.error) && (latest.error as { status?: number }).status !== 429
-            ? ' Số đo không tự cập nhật nữa; bấm Tải lại khi muốn xem tiếp.'
-            : ''}
-        </Text>
+        <Text style={[styles.body, { color: theme.danger }]}>{iotErrorMessage(latest.error)}</Text>
       ) : null}
       <View style={styles.spread}>
         <Text style={[styles.meta, { color: theme.textMuted }]}>
@@ -172,37 +165,23 @@ function LatestBlock({
   )
 }
 
-function DeviceFacts({ device, lastAt }: { device: IotProjectDevice; lastAt: string | null }) {
-  return (
-    <Panel>
-      <SectionTitle>Thiết bị đo</SectionTitle>
-      <KeyValue label="Mã thiết bị" value={device.deviceId} />
-      <KeyValue label="Tên" value={device.displayName} />
-      <KeyValue label="Cảm biến" value={device.sensorModel ?? 'Không ghi'} />
-      <KeyValue label="Dải đo" value={`±${formatAmps(device.maxCurrentAmps)}`} />
-      <KeyValue label="Gắn lúc" value={formatReadingTime(device.boundAt)} />
-      <KeyValue label="Chu kỳ gửi" value={`${device.expectedReportIntervalSeconds} giây / lần`} />
-      <KeyValue label="Báo mất kết nối" value={`Sau ${device.offlineAfterSeconds} giây không có số đo`} />
-      <KeyValue label="Số đo gần nhất" value={lastAt ? formatReadingTime(lastAt) : 'Chưa có'} />
-    </Panel>
-  )
-}
-
-/** Bản phần cứng V1 chỉ đo dòng điện: các đại lượng khác luôn "Chưa đo được", không tự tính từ dòng điện */
+/** Bản phần cứng V1 chỉ đo dòng điện: đại lượng chưa đo được thì không hiện dòng, không tự tính từ dòng điện */
 function OtherQuantities({ energy }: { energy: EnergyMonitoring | undefined }) {
-  const theme = useAppTheme()
   const m = energy?.measured
+  const rows = (
+    [
+      ['Công suất', m?.powerWatts],
+      ['Điện năng tạo ra', m?.energyProducedKwh],
+      ['Điện mua từ lưới', m?.energyImportedKwh],
+      ['Điện bán lên lưới', m?.energyExportedKwh],
+    ] as const
+  ).filter(([, q]) => quantityText(q) !== NOT_MEASURED_TEXT)
+  if (rows.length === 0) return null
   return (
     <Panel>
-      <SectionTitle>Đại lượng khác</SectionTitle>
-      <KeyValue label="Công suất" value={quantityText(m?.powerWatts)} />
-      <KeyValue label="Điện năng tạo ra" value={quantityText(m?.energyProducedKwh)} />
-      <KeyValue label="Điện mua từ lưới" value={quantityText(m?.energyImportedKwh)} />
-      <KeyValue label="Điện bán lên lưới" value={quantityText(m?.energyExportedKwh)} />
-      <Text style={[styles.meta, { color: theme.textMuted }]}>
-        Thiết bị hiện chỉ đo dòng điện (A). Công suất, điện năng và điện mua / bán với lưới chưa đo được nên không hiện
-        số.
-      </Text>
+      {rows.map(([label, q]) => (
+        <KeyValue key={label} label={label} value={quantityText(q)} />
+      ))}
     </Panel>
   )
 }
@@ -218,7 +197,6 @@ function History({ projectId, maxGapMs }: { projectId: string; maxGapMs: number 
   if (!opened)
     return (
       <Panel>
-        <SectionTitle>Lịch sử số đo</SectionTitle>
         <Button
           label="Xem lịch sử số đo"
           icon="time-outline"
@@ -278,9 +256,6 @@ function History({ projectId, maxGapMs }: { projectId: string; maxGapMs: number 
         </Text>
       ) : (
         <>
-          <Text style={[styles.meta, styles.tnum, { color: theme.textMuted }]}>
-            {readings.length} số đo, mới nhất lúc {formatReadingTime(readings[0]!.receivedAt)}
-          </Text>
           <CurrentChart points={points} maxGapMs={maxGapMs} />
           <View>
             {readings.map((r, index) => (
@@ -295,7 +270,6 @@ function History({ projectId, maxGapMs }: { projectId: string; maxGapMs: number 
                 <Text style={[styles.body, styles.tnum, styles.strong, { color: theme.text }]}>
                   {formatAmps(r.currentAmps)}
                 </Text>
-                <Text style={[styles.meta, styles.tnum, { color: theme.textMuted }]}>{r.deviceId}</Text>
               </ListRow>
             ))}
           </View>
@@ -311,43 +285,25 @@ function History({ projectId, maxGapMs }: { projectId: string; maxGapMs: number 
               loading={query.isFetchingNextPage}
               onPress={() => void query.fetchNextPage()}
             />
-          ) : (
-            <Text style={[styles.meta, { color: theme.textMuted }]}>Đã hết số đo cũ hơn.</Text>
-          )}
+          ) : null}
         </>
       )}
     </Panel>
   )
 }
 
-/** Sản lượng dự kiến theo mô phỏng trước khi lắp: không phải số đo, nằm riêng một phần */
-function Simulated({
-  energy,
-}: {
-  energy: { data: EnergyMonitoring | undefined; isPending: boolean; isError: boolean }
-}) {
-  const theme = useAppTheme()
-  const s = energy.data?.simulated
+/** Sản lượng dự kiến theo mô phỏng trước khi lắp: không phải số đo, nằm riêng một phần; chưa có thì không hiện */
+function Simulated({ energy }: { energy: EnergyMonitoring | undefined }) {
+  const s = energy?.simulated
+  if (!s || s.installedCapacityKwp == null) return null
   return (
     <Panel>
-      <SectionTitle detail="Ước tính từ bản mô phỏng trước khi lắp, không phải số đo">
-        Sản lượng dự kiến (mô phỏng)
-      </SectionTitle>
-      {energy.isPending ? (
-        <Text style={[styles.body, { color: theme.textMuted }]}>Đang tải…</Text>
-      ) : energy.isError ? (
-        <Text style={[styles.body, { color: theme.textMuted }]}>Chưa tải được</Text>
-      ) : s && s.installedCapacityKwp != null ? (
-        <>
-          <KeyValue label="Công suất lắp" value={formatKwp(s.installedCapacityKwp)} />
-          {s.panelCount != null ? <KeyValue label="Số tấm pin" value={`${s.panelCount} tấm`} /> : null}
-          {s.annualEnergyKwh != null ? (
-            <KeyValue label="Dự kiến (mô phỏng)" value={`khoảng ${formatKwhPerYear(s.annualEnergyKwh)}`} />
-          ) : null}
-        </>
-      ) : (
-        <Text style={[styles.body, { color: theme.textMuted }]}>Chưa có bản mô phỏng</Text>
-      )}
+      <SectionTitle>Sản lượng dự kiến (mô phỏng)</SectionTitle>
+      <KeyValue label="Công suất lắp" value={formatKwp(s.installedCapacityKwp)} />
+      {s.panelCount != null ? <KeyValue label="Số tấm pin" value={`${s.panelCount} tấm`} /> : null}
+      {s.annualEnergyKwh != null ? (
+        <KeyValue label="Dự kiến" value={`khoảng ${formatKwhPerYear(s.annualEnergyKwh)}`} />
+      ) : null}
     </Panel>
   )
 }
@@ -383,12 +339,7 @@ function ProjectMonitoring({ projectId }: { projectId: string }) {
         />
       ) : unbound ? (
         <Panel>
-          <SectionTitle>Dòng điện đo được</SectionTitle>
           <Text style={[styles.placeholder, { color: theme.textMuted }]}>{NOT_BOUND_TEXT}</Text>
-          <Text style={[styles.body, { color: theme.textMuted }]}>
-            Khi Smart Solar lắp thiết bị đo, dòng điện đo được sẽ hiện ở đây. Số đo cũ của công trình (nếu có) vẫn xem
-            được trong lịch sử.
-          </Text>
           <Button label="Tải lại" icon="refresh" variant="secondary" compact onPress={reload} />
         </Panel>
       ) : device.data ? (
@@ -400,7 +351,6 @@ function ProjectMonitoring({ projectId }: { projectId: string }) {
             onReload={reload}
             reloading={latest.isFetching || device.isFetching}
           />
-          <DeviceFacts device={device.data} lastAt={latest.data?.reading?.receivedAt ?? device.data.lastReadingAt} />
           <OtherQuantities energy={energy.data} />
         </>
       ) : null}
@@ -409,7 +359,7 @@ function ProjectMonitoring({ projectId }: { projectId: string }) {
       !(device.isError && (isMonitoringUnavailable(device.error) || isFinalReadError(device.error))) ? (
         <History projectId={projectId} maxGapMs={maxGapMs} />
       ) : null}
-      <Simulated energy={energy} />
+      <Simulated energy={energy.data} />
     </>
   )
 }
@@ -427,7 +377,7 @@ export function MonitoringScreen() {
   return (
     <Screen refreshing={projects.isRefetching} onRefresh={() => void projects.refetch()}>
       <BackButton onPress={() => (router.canGoBack() ? router.back() : router.replace('/customer'))} />
-      <PageHeader title="Giám sát điện năng" description="Dòng điện thiết bị đo được ở công trình của bạn" />
+      <PageHeader title="Giám sát điện năng" />
       <QueryState
         loading={projects.isPending}
         error={projects.error ? new Error(iotErrorMessage(projects.error)) : null}

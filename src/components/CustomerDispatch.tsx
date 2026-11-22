@@ -80,7 +80,7 @@ export function DispatchRequestForm({
     <Panel>
       <SectionTitle>Nhờ Smart Solar xếp kỹ thuật viên</SectionTitle>
       <Text style={[styles.body, { color: theme.textMuted }]}>
-        Chọn tối đa {MAX_WINDOWS} khung giờ bạn tiện, nhân viên sẽ xếp người và báo lại.
+        Chọn tối đa {MAX_WINDOWS} khung giờ bạn tiện, Smart Solar xếp người rồi báo lại.
       </Text>
       {windows.map((w, index) => (
         <View key={w.key} style={[styles.window, { borderColor: theme.border }]}>

@@ -5,6 +5,7 @@ import {
   assignmentSourceLabel,
   canBook,
   coverageText,
+  customerNextStep,
   customerStatus,
   historyStatusLabel,
   ineligibleLabel,
@@ -53,4 +54,13 @@ test('lý do ngày không có giờ trống và lý do không nhận được l�
   assert.equal(coverageText('COVERED'), null)
   assert.equal(ineligibleLabel('DAILY_LIMIT_REACHED'), 'đã đủ số lịch trong ngày')
   assert.equal(assignmentSourceLabel('SELF_ACCEPTED'), 'Bạn tự nhận')
+})
+
+test('khách thấy bước tiếp theo khi đã có lịch hoặc đã khảo sát xong', () => {
+  const booked = (acceptanceStatus) => ({ status: 'PENDING', appointment: { status: 'ACCEPTED', acceptanceStatus } })
+  assert.match(customerNextStep(booked('WAITING_FOR_TECHNICIAN')), /khi có kỹ thuật viên nhận/)
+  assert.match(customerNextStep(booked('CONFIRMED')), /đúng giờ hẹn/)
+  assert.match(customerNextStep({ status: 'COMPLETED', appointment: null }), /báo giá và hợp đồng/)
+  assert.equal(customerNextStep({ status: 'PENDING', appointment: null }), null)
+  assert.equal(customerNextStep({ status: 'CANCELLED', appointment: null }), null)
 })

@@ -42,10 +42,7 @@ export function CustomerRequestRow({
             Đề xuất {formatAppointment(live.startsAt, live.endsAt)}, trả lời trước {formatMoment(live.expiresAt)}
           </Text>
         ) : null}
-        <View style={styles.meta}>
-          <StatusText tone={status.tone}>{status.label}</StatusText>
-          <Text style={[styles.code, { color: theme.textMuted }]}>{shortCode(request.surveyRequestId)}</Text>
-        </View>
+        <StatusText tone={status.tone}>{status.label}</StatusText>
       </View>
       <Ionicons name="chevron-forward" size={18} color={theme.textSubtle} />
     </ListRow>
@@ -56,6 +53,4 @@ const styles = StyleSheet.create({
   copy: { flex: 1, gap: 2 },
   name: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
   time: { fontSize: 13, lineHeight: 18 },
-  meta: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
-  code: { fontSize: 12, lineHeight: 18, fontVariant: ['tabular-nums'] },
 })
