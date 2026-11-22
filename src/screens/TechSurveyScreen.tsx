@@ -13,6 +13,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ActionBar, FieldRegistryProvider, Note, useFieldScroller } from '@/components/form'
+import { MenuButton } from '@/components/SideMenu'
 import { BomSection } from '@/components/survey/BomSection'
 import { PhotosSection } from '@/components/survey/PhotosSection'
 import { StartSurvey } from '@/components/survey/StartSurvey'
@@ -74,9 +75,12 @@ export function TechSurveyScreen() {
   const header = (
     <View style={styles.header}>
       <BackButton onPress={() => router.back()} />
-      <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
-        Khảo sát tại công trình
-      </Text>
+      <View style={styles.titleRow}>
+        <MenuButton />
+        <Text accessibilityRole="header" style={[styles.title, { color: theme.text }]}>
+          Khảo sát tại công trình
+        </Text>
+      </View>
       {job.data ? (
         <View style={styles.metaRow}>
           <Text style={[styles.meta, { color: theme.textMuted }]} numberOfLines={1}>
@@ -130,9 +134,7 @@ function CompletedSurvey({ survey }: { job: TechnicianJob; survey: OnSiteSurveyV
   const catalog = useCatalog()
   return (
     <View style={styles.stack}>
-      <Note tone="success">
-        Đã hoàn thành lúc {formatMoment(survey.completedAt)}. Muốn sửa thì gửi bổ sung biên bản kèm lý do.
-      </Note>
+      <Note tone="success">Đã hoàn thành lúc {formatMoment(survey.completedAt)}.</Note>
       <SurveySummary survey={survey} products={catalog.data?.items ?? undefined} />
       <PhotosSection appointmentId={survey.appointmentId} attachments={survey.attachments} disabled />
     </View>
@@ -266,7 +268,7 @@ function SurveyEditor({
   async function persist(): Promise<OnSiteSurveyView | null> {
     const found = validateOnSiteSurvey(form, { forCompletion: false, units })
     if (Object.keys(found).length > 0) {
-      showErrors(found, 'Sửa các ô được đánh dấu rồi lưu lại.')
+      showErrors(found, 'Sửa các ô được đánh dấu.')
       return null
     }
     try {
@@ -290,17 +292,17 @@ function SurveyEditor({
     setActionError(null)
     const found = validateOnSiteSurvey(form, { forCompletion: true, units })
     if (Object.keys(found).length > 0) {
-      showErrors(found, 'Còn ô chưa điền hoặc chưa đúng. Sửa các ô được đánh dấu rồi hoàn thành lại.')
+      showErrors(found, 'Còn ô thiếu hoặc sai. Sửa các ô được đánh dấu.')
       return
     }
     if (roofPhotos === 0) {
-      setActionError('Cần ít nhất một ảnh loại Mái trước khi hoàn thành.')
+      setActionError('Cần ít nhất một ảnh Mái.')
       setSection('photos')
       return
     }
     Alert.alert(
       'Hoàn thành khảo sát?',
-      `${dirty ? 'Phần chưa lưu sẽ được lưu trước. ' : ''}Kết quả dùng để lập báo giá; lịch hẹn và yêu cầu chuyển sang đã khảo sát. Hoàn thành rồi thì muốn sửa phải gửi bổ sung kèm lý do.`,
+      `${dirty ? 'Phần chưa lưu sẽ được lưu trước. ' : ''}Hoàn thành rồi thì không sửa trên điện thoại được.`,
       [
         { text: 'Xem lại', style: 'cancel' },
         { text: 'Hoàn thành', onPress: () => void confirmComplete() },
@@ -343,7 +345,7 @@ function SurveyEditor({
   const saveText = busy
     ? 'Đang gửi…'
     : dirty
-      ? 'Chưa lưu lên hệ thống. Số đo đang giữ trên máy.'
+      ? 'Chưa lưu, đang giữ trên máy.'
       : savedAt
         ? `Đã lưu lúc ${formatMoment(savedAt)}`
         : 'Đã lưu'
@@ -400,7 +402,7 @@ function SurveyEditor({
                 onPress={() => setSection(s.key)}
                 style={[styles.tab, { borderBottomColor: active ? theme.brandText : 'transparent' }]}
               >
-                <Text style={[styles.tabText, { color: active ? theme.brandText : theme.text }]}>
+                <Text numberOfLines={1} style={[styles.tabText, { color: active ? theme.brandText : theme.text }]}>
                   {s.label}
                   {count ? <Text style={{ color: theme.danger }}> {count}</Text> : null}
                 </Text>
@@ -415,20 +417,19 @@ function SurveyEditor({
             {draft.kind === 'conflict' ? (
               <View style={[styles.notice, { borderLeftColor: theme.warning }]}>
                 <Note tone="warning">
-                  Máy còn số đo chưa lưu (giữ lúc {formatMoment(draft.draft.savedAt)}), nhưng biên bản trên hệ thống đã
-                  được cập nhật ở nơi khác sau đó. Chọn bản muốn dùng.
+                  Máy còn số đo chưa lưu lúc {formatMoment(draft.draft.savedAt)}, nhưng biên bản đã được sửa ở nơi khác.
+                  Chọn bản muốn dùng.
                 </Note>
                 <View style={styles.row}>
                   <Button label="Dùng số đo trên máy" compact onPress={() => keepMine(draft.draft.form)} />
-                  <Button label="Lấy bản trên hệ thống" variant="secondary" compact onPress={takeServer} />
+                  <Button label="Lấy bản mới nhất" variant="secondary" compact onPress={takeServer} />
                 </View>
               </View>
             ) : null}
             {stale ? (
               <View style={[styles.notice, { borderLeftColor: theme.warning }]}>
                 <Note tone="warning">
-                  Biên bản vừa được cập nhật ở nơi khác. Phần bạn đang nhập vẫn còn trên máy. Lấy bản mới nhất sẽ thay
-                  phần đang nhập; giữ phần đang nhập thì lần lưu sau ghi đè bản trên hệ thống.
+                  Biên bản vừa được sửa ở nơi khác. Giữ phần đang nhập thì lần lưu sau sẽ ghi đè bản đó.
                 </Note>
                 <View style={styles.row}>
                   <Button label="Lấy bản mới nhất" compact loading={refreshing} onPress={takeServer} />
@@ -443,10 +444,7 @@ function SurveyEditor({
               </View>
             ) : null}
             {section === 'roof' ? (
-              <Note>
-                Bắt đầu lúc {formatMoment(survey.startedAt)}. Ô có dấu * phải có trước khi hoàn thành; lưu được khi chưa
-                điền đủ.
-              </Note>
+              <Note>Bắt đầu lúc {formatMoment(survey.startedAt)}. Ô có dấu * bắt buộc để hoàn thành.</Note>
             ) : null}
             <FieldRegistryProvider registry={registry}>{renderSection()}</FieldRegistryProvider>
           </View>
@@ -467,11 +465,11 @@ function SurveyEditor({
               <Text style={{ color: missing.length ? theme.danger : theme.success }}>
                 {missing.length ? `Còn ${missing.length} ô bắt buộc` : 'Đủ ô bắt buộc'}
               </Text>
-              {' · '}
+              {', '}
               <Text style={{ color: roofPhotos ? theme.success : theme.danger }}>
-                {roofPhotos ? `${roofPhotos} ảnh mái` : 'Chưa có ảnh mái'}
+                {roofPhotos ? `${roofPhotos} ảnh mái` : 'chưa có ảnh mái'}
               </Text>
-              {missing.length || !roofPhotos ? <Text style={{ color: theme.brandText }}> · Tới ô thiếu</Text> : null}
+              {missing.length || !roofPhotos ? <Text style={{ color: theme.brandText }}>. Tới ô thiếu</Text> : null}
             </Text>
           </Pressable>
           <Note tone={dirty ? 'warning' : 'muted'}>{saveText}</Note>
@@ -506,7 +504,8 @@ function SurveyEditor({
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   header: { paddingHorizontal: SCREEN_PADDING, paddingTop: 4, gap: 2 },
-  title: { fontSize: 20, lineHeight: 26, fontWeight: '700' },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  title: { flex: 1, fontSize: 20, lineHeight: 26, fontWeight: '700' },
   metaRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   meta: { fontSize: 13, lineHeight: 18, flexShrink: 1 },
   pad: { paddingHorizontal: SCREEN_PADDING, paddingTop: 12, paddingBottom: 24 },

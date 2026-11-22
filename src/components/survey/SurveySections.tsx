@@ -84,7 +84,7 @@ export function RoofSection({
 
   return (
     <>
-      <FormField name="roofType" label="Loại mái" required hint="Chọn gợi ý hoặc gõ." error={errors.roofType}>
+      <FormField name="roofType" label="Loại mái" required error={errors.roofType}>
         <TextBox
           label="Loại mái"
           value={value.roofType}
@@ -100,13 +100,7 @@ export function RoofSection({
           onPick={(roofType) => onChange({ roofType })}
         />
       </FormField>
-      <FormField
-        name="roofMaterial"
-        label="Vật liệu mái"
-        required
-        hint="Chọn gợi ý hoặc gõ."
-        error={errors.roofMaterial}
-      >
+      <FormField name="roofMaterial" label="Vật liệu mái" required error={errors.roofMaterial}>
         <TextBox
           label="Vật liệu mái"
           value={value.roofMaterial}
@@ -242,7 +236,7 @@ export function ElectricSection({ value, errors, onChange, disabled }: SectionPr
         error={errors.electricalCabinetNotes}
       >
         <View style={styles.group}>
-          <FormField label="Vị trí tủ" hint="Chọn gợi ý hoặc gõ.">
+          <FormField label="Vị trí tủ">
             <TextBox
               label="Vị trí tủ điện"
               value={parts.location}
@@ -266,7 +260,7 @@ export function ElectricSection({ value, errors, onChange, disabled }: SectionPr
             />
             {parts.phase && !CABINET_PHASES.includes(parts.phase) ? <Note>Giá trị cũ: {parts.phase}</Note> : null}
           </FormField>
-          <FormField label="Aptomat tổng" hint="Chọn gợi ý hoặc gõ.">
+          <FormField label="Aptomat tổng">
             <TextBox
               label="Aptomat tổng"
               value={parts.mainBreaker}

@@ -36,7 +36,7 @@ export function techTodos(
     if (j.isOverdue)
       items.push({
         key: `o-${j.appointmentId}`,
-        title: 'Quá giờ hẹn, chưa khảo sát',
+        title: 'Quá giờ hẹn, chưa xong khảo sát',
         place: j.propertyName,
         ...times(j),
         href: `/tech/job/${j.appointmentId}`,

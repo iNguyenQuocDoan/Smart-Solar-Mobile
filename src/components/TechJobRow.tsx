@@ -29,7 +29,7 @@ export function TechJobRow({ job, last = false }: { job: TechnicianAppointment; 
           {[job.communeName ?? job.ward ?? job.district, job.province].filter(Boolean).join(', ')}
         </Text>
         {job.isOverdue ? (
-          <StatusText tone="danger">Quá giờ, chưa khảo sát</StatusText>
+          <StatusText tone="danger">Quá giờ, chưa xong khảo sát</StatusText>
         ) : (
           <StatusText tone={status.tone}>{status.label}</StatusText>
         )}

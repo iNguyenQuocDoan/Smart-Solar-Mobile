@@ -43,7 +43,7 @@ export function PhotosSection({
   return (
     <View style={styles.block}>
       <Note tone={roofPhotos > 0 ? 'success' : 'warning'}>
-        {roofPhotos > 0 ? `${roofPhotos} ảnh mái.` : 'Chưa có ảnh mái. Cần ít nhất một ảnh Mái để hoàn thành.'}
+        {roofPhotos > 0 ? `${roofPhotos} ảnh mái.` : 'Cần ít nhất một ảnh Mái để hoàn thành.'}
       </Note>
       {attachments.length === 0 ? <Note>Chưa có tệp nào.</Note> : null}
       {attachments.map((a) => (

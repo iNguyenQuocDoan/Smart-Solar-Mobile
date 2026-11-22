@@ -38,7 +38,7 @@ export function JobSteps({ job }: { job: TechnicianJob }) {
           completed
             ? `Đã hoàn thành${view?.completedAt ? ` lúc ${formatMoment(view.completedAt)}` : ''}.`
             : started
-              ? `Đang khảo sát từ ${formatMoment(view?.startedAt)}. Nhập số đo, chụp ảnh mái rồi hoàn thành.`
+              ? `Đang khảo sát từ ${formatMoment(view?.startedAt)}.`
               : 'Chưa bắt đầu.'
         }
       >
@@ -59,9 +59,9 @@ export function JobSteps({ job }: { job: TechnicianJob }) {
         index={2}
         title="Báo giá"
         state={completed ? 'current' : 'todo'}
-        detail={completed ? 'Lập báo giá từ vật tư đã chốt, trình bày cho khách.' : 'Mở sau khi hoàn thành khảo sát.'}
+        detail={completed ? 'Lập từ vật tư đã chốt.' : 'Mở khi khảo sát xong.'}
       />
-      <Step index={3} title="Thu 30%" state="todo" detail="Khách đồng ý báo giá thì thu khoản 30% tại chỗ." />
+      <Step index={3} title="Thu 30%" state="todo" detail="Thu tại chỗ khi khách đồng ý báo giá." />
     </Panel>
   )
 }
