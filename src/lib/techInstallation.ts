@@ -16,7 +16,7 @@ const STATUS_LABELS: Record<string, string> = {
   PENDING_TECHNICIAN_ACCEPTANCE: 'Chờ bạn nhận việc',
   SCHEDULED: 'Đã nhận, chờ lắp đặt',
   IN_PROGRESS: 'Đang lắp đặt',
-  PENDING_CUSTOMER_ACCEPTANCE: 'Chờ nghiệm thu nội bộ',
+  PENDING_CUSTOMER_ACCEPTANCE: 'Chờ khách nghiệm thu',
   REWORK_REQUIRED: 'Cần sửa lại',
   COMPLETED: 'Đã bàn giao',
   CANCELLED: 'Đã huỷ',
