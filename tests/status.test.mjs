@@ -9,6 +9,7 @@ import {
   customerStatus,
   historyStatusLabel,
   ineligibleLabel,
+  isUpcomingJob,
 } from '../src/lib/status.ts'
 
 const STATUSES = ['PENDING_ACCEPTANCE', 'ESCALATED', 'ACCEPTED', 'ASSIGNED', 'COMPLETED', 'CANCELLED']
@@ -63,4 +64,9 @@ test('khách thấy bước tiếp theo khi đã có lịch hoặc đã khảo s
   assert.match(customerNextStep({ status: 'COMPLETED', appointment: null }), /báo giá và hợp đồng/)
   assert.equal(customerNextStep({ status: 'PENDING', appointment: null }), null)
   assert.equal(customerNextStep({ status: 'CANCELLED', appointment: null }), null)
+})
+
+test('khảo sát xong trước giờ hẹn không còn là việc phải làm', () => {
+  assert.equal(isUpcomingJob({ status: 'COMPLETED' }), false)
+  for (const status of ['ACCEPTED', 'ASSIGNED']) assert.equal(isUpcomingJob({ status }), true)
 })

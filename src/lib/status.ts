@@ -123,9 +123,8 @@ export function customerNextStep(request: RequestState): string | null {
   return null
 }
 
-/** Lịch khảo sát của kỹ thuật viên còn phải làm: chưa hết giờ, hoặc quá giờ mà chưa khảo sát */
-export const isUpcomingJob = (job: { isOverdue: boolean; endsAt: string }, now: number) =>
-  job.isOverdue || new Date(job.endsAt).getTime() >= now
+/** Lịch khảo sát còn phải làm: theo trạng thái, không theo giờ hẹn (làm xong sớm thì hết việc ngay) */
+export const isUpcomingJob = (job: { status: string }) => job.status !== 'COMPLETED'
 
 export function appointmentStatus(status: string, viewer: Viewer): Meta {
   const label =

@@ -184,8 +184,7 @@ function TechnicianActivity() {
   const jobs = useTechJobs()
   const installations = useTechInstallations()
   const today = useTechSchedule(todayVn())
-  const [now] = useState(() => Date.now())
-  const upcoming = jobs.data?.filter((job) => isUpcomingJob(job, now)).length
+  const upcoming = jobs.data?.filter(isUpcomingJob).length
   const working = installations.data?.filter((p) => installationGroup(p) === 'active').length
   const todayCount = today.data?.appointments.filter((item) => !item.isCapacityHold).length
   return (
